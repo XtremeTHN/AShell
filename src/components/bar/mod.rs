@@ -1,9 +1,9 @@
-use crate::components::button::ButtonBuilder;
+use crate::components::button::to_button;
 use crate::components::statusicons::temps::temperatures;
 use crate::services::{clock::Clock, colors::ColorsService};
 
 use super::label::label;
-use super::mrow::{ROW_PADDING, row, wrap};
+use super::mrow::{ROW_PADDING, row};
 use super::statusicons::all::all_status;
 use amane::Align::{self, Center, End};
 use amane::{
@@ -12,7 +12,10 @@ use amane::{
 };
 
 mod active_window;
+pub mod bar_container;
 mod workspaces;
+
+use bar_container::bar_container;
 
 fn left() -> Row {
     row(
@@ -24,7 +27,7 @@ fn left() -> Row {
 fn date() -> Rectangle {
     let clock = Clock::read();
 
-    wrap(label(clock.date.as_str()), 30.0).align_child(End, End)
+    bar_container(label(clock.date.as_str()), 30.0).align_child(End, End)
 }
 
 fn clock() -> Rectangle {
@@ -33,11 +36,11 @@ fn clock() -> Rectangle {
     let status = all_status();
 
     let row = Row::new(children!(lbl, status));
-    wrap(row, 30.0)
+    bar_container(row, 30.0)
 }
 
 fn right() -> Row {
-    let btt = ButtonBuilder::new().id("clock").wrap(clock()).build();
+    let btt = to_button(clock(), "clock");
     row(vec![temperatures(), date(), btt], ROW_PADDING)
 }
 
@@ -51,8 +54,11 @@ fn content() -> Rectangle {
         .padding(Padding {
             left: 10.0,
             right: 10.0,
-            ..Default::default()
+            top: 10.0,
+            bottom: 10.0,
+            // ..Default::default()
         })
+        .align_child(Align::Center, Align::Center)
         .child(
             Row::new(children!(left(), right()))
                 .width(Parent)
@@ -63,8 +69,9 @@ fn content() -> Rectangle {
 pub fn view() -> LayerWindow {
     LayerWindow::new()
         .width(Full)
-        .height(40.0)
+        .height(45.0)
         .anchor_vertical(Vertical::Top)
         .layer(Layer::Top)
+        .space(amane::Zone::Reserve)
         .child(content())
 }

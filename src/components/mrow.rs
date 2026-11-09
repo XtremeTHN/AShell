@@ -38,9 +38,7 @@ pub fn row(children: Vec<Rectangle>, padding: f32) -> Row {
     let end = children.len().saturating_sub(1);
 
     for (counter, child) in children.into_iter().enumerate() {
-        let mut widget = child
-            .fill(colors.c.surface_container.as_str())
-            .padding(padding);
+        let mut widget = child.padding(padding);
 
         if counter == 0 && counter == end {
             widget = widget.radius(OUTTER_RADIUS);

@@ -1,8 +1,8 @@
 use amane::Align::Center;
 use amane::{Rectangle, Row, Service, Text, children};
 
-use crate::components::mrow::wrap;
-use crate::components::statusicons::threshold;
+use crate::components::bar::bar_container::bar_container;
+use crate::components::button::to_button;
 use crate::components::{icon::glyph, label::label};
 use crate::services::temps::Temperature;
 
@@ -32,5 +32,5 @@ pub fn temperatures() -> Rectangle {
 
     let row = Row::new(children!(ricon, cpu_temp, gpu_temp)).gap(5.0);
 
-    wrap(row, 30.0)
+    to_button(bar_container(row, 30.0), "temperatures")
 }

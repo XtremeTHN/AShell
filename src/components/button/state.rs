@@ -1,23 +1,24 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use amane::Service;
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct ButtonState {
-    pub(crate) pressed: bool,
     pub(crate) hovered: bool,
+    pub(crate) pressed: bool,
 }
 
 #[derive(Default)]
-pub struct States {
-    pub(crate) states: HashMap<String, ButtonState>,
+pub struct ButtonStates {
+    pub states: HashMap<&'static str, ButtonState>,
 }
 
-impl Service for States {
+impl Service for ButtonStates {
     fn new() -> Self {
         Default::default()
     }
 
-    // changes through input
-    fn listen() {}
+    fn interval() -> Duration {
+        Duration::from_secs(3600)
+    }
 }

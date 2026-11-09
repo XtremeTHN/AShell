@@ -1,13 +1,14 @@
 use crate::{components::mrow, services::colors::ColorsService};
 use amane::{
-    Align, Animation, Radius, Rectangle, Row, Service, Size::Parent, Widget, Workspace,
-    Workspaces,
+    Align, Animation, Radius, Rectangle, Row, Service, Size::Parent, Widget, Workspace, Workspaces,
 };
 use std::{
     collections::HashMap,
     sync::{Mutex, OnceLock},
     time::Duration,
 };
+
+use super::bar_container::bar_container;
 
 static WIDTHS: OnceLock<Mutex<HashMap<i64, Animation>>> = OnceLock::new();
 
@@ -44,11 +45,5 @@ pub fn workspaces() -> Rectangle {
     }
 
     let row = Row::new(items).gap(3.0);
-    let width = mrow::width(&row);
-
-    Rectangle::new()
-        .width(width)
-        .height(30.0)
-        .child(row)
-        .align_child(Align::Start, Align::Center)
+    bar_container(row, 30.0).align_child(Align::Start, Align::Center)
 }
