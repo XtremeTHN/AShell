@@ -1,0 +1,27 @@
+[package]
+name = "amane-shell"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "amane-shell"
+path = '/home/axel/.config/amane/src/main.rs'
+
+[dependencies]
+amane = { path = '/home/axel/.cache/amane/library' }
+env_logger = "0.11.11"
+glob = "0.3.4"
+log = "0.4.35"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+time = { version = "0.3.55", features = ["formatting", "local-offset", "macros"] }
+
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 3
+debug = false
+incremental = false
+
+[workspace]
