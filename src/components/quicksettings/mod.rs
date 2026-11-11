@@ -3,19 +3,22 @@ use crate::{
         button::button,
         icon::glyph,
         mrow::{self, height, wrap},
+        slider::slider,
     },
     services::colors::ColorsService,
 };
 use amane::{
-    Align::Center, Column, Justify, LayerWindow, Margin, Padding, Radius::Full, Rectangle, Row,
-    Service, Widget, children,
+    Align::{Center, End, Start},
+    Column, Justify, LayerWindow, Margin, Padding,
+    Radius::Full,
+    Rectangle, Row, Service, Widget, children,
 };
 
 const TOP_MAX_HEIGHT: f32 = 30.0;
 
 const QUICKSETTINGS_MAX_WIDTH: f32 = 300.0;
-const QUICKSETTINGS_MAX_HEIGHT: f32 = 100.0;
-const QUICKSETTINGS_MIN_HEIGHT: f32 = QUICKSETTINGS_MAX_WIDTH - 20.0;
+const QUICKSETTINGS_MAX_HEIGHT: f32 = 200.0;
+const QUICKSETTINGS_MIN_WIDTH: f32 = QUICKSETTINGS_MAX_WIDTH - 20.0;
 
 fn settings_btt() -> Rectangle {
     button(
@@ -49,28 +52,38 @@ fn power_btt() -> Row {
 fn top() -> Row {
     Row::new(children!(settings_btt(), power_btt()))
         .gap(5.0)
-        .width(QUICKSETTINGS_MIN_HEIGHT)
+        .width(QUICKSETTINGS_MIN_WIDTH)
         .justify(Justify::SpaceBetween)
 }
 
-fn middle() {}
+fn middle() -> Column {
+    Column::new(children!(slider(
+        QUICKSETTINGS_MIN_WIDTH,
+        32.0,
+        "quicksettings-brightness-slider"
+    )))
+}
 fn bottom() {}
 
 fn content() -> Rectangle {
     let colors = ColorsService::read();
 
-    let row = Column::new(children!(top()));
-    let height = height(&row);
+    let row = Column::new(children!(top(), middle()))
+        .align(Start)
+        .gap(10.0);
+    let amane::Size::Fixed(height) = height(&row) else {
+        unreachable!()
+    };
 
-    // wrap(row, height)
     Rectangle::new()
         .width(QUICKSETTINGS_MAX_WIDTH)
-        .height(height)
+        .height(height + 20.0)
         .child(row)
         .fill(colors.c.background.as_str())
-        .align_child(Center, Center)
+        .align_child(Center, End)
         .radius(16.0)
         .border(1.0, colors.c.outline_variant.as_str())
+        .padding(20.0)
 }
 
 pub fn view() -> LayerWindow {
