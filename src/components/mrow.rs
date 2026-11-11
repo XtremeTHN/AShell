@@ -32,7 +32,6 @@ pub fn wrap(child: impl Widget + 'static, height: impl Into<amane::Size>) -> Rec
 }
 
 pub fn row(children: Vec<Rectangle>, padding: f32) -> Row {
-    let colors = ColorsService::read();
     let mut items: Widgets = vec![];
 
     let end = children.len().saturating_sub(1);

@@ -19,6 +19,7 @@ fn main() {
 
     App::new()
         .window(components::bar::view)
+        .window(components::quicksettings::view)
         .font("Roboto")
         .run();
 }
