@@ -2,18 +2,21 @@ use super::{Compare, threshold};
 use crate::components::icon::glyph;
 use amane::{Align::Center, Audio, Rectangle, Service};
 
-pub fn audio_icon_string(volume: u8) -> String {
-    let i = threshold(
+pub fn audio_icon_string<T>(volume: T) -> String
+where
+    T: PartialOrd + From<u8>,
+{
+    let thresholds = [T::from(1), T::from(60)];
+    let icon = threshold(
         volume,
-        &[1, 60],
+        &thresholds,
         vec!["volume_mute", "volume_down"],
         "volume_up",
         Compare::LESS,
     );
 
-    String::from(i)
+    String::from(icon)
 }
-
 pub fn audio_icon() -> Rectangle {
     let audio = Audio::read();
 

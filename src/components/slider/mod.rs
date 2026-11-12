@@ -1,21 +1,19 @@
 pub mod state;
 
-use amane::{Align, Radius::Full, Rectangle, Row, Service, Stack, children};
+use amane::{Align, Radius::Full, Rectangle, Row, Service, Stack, Text, Widget, children};
 
 use crate::{components::icon::glyph, services::colors::ColorsService};
 
 const HANDLE_WIDTH: f32 = 3.0;
 const HANDLE_HEIGHT: f32 = 6.0;
+const HANDLE_GAP: f32 = 4.0;
+
 const SLIDER_LEFT_RADIUS: f32 = 8.0;
 const SLIDER_RIGHT_RADIUS: f32 = 1.0;
-const HANDLE_GAP: f32 = 4.0;
 
 fn handle(base_height: f32, id: &'static str) -> Rectangle {
     let colors = ColorsService::read();
-    let state = {
-        let s = state::SliderStates::read();
-        s.states.get(id).cloned().unwrap_or_default()
-    };
+    let state = state::SliderStates::get_state(id);
 
     let fill = if state.pressed {
         colors.c.primary_container.as_str()
@@ -32,10 +30,7 @@ fn handle(base_height: f32, id: &'static str) -> Rectangle {
 
 fn bar(width: f32, height: f32, id: &'static str) -> Row {
     let colors = ColorsService::read();
-    let state = {
-        let s = state::SliderStates::read();
-        s.states.get(id).cloned().unwrap_or_default()
-    };
+    let state = state::SliderStates::get_state(id);
 
     let travel = width - HANDLE_WIDTH;
     let handle_x = state.value * travel;
@@ -64,21 +59,46 @@ fn change_value(id: &'static str, cb: impl Fn(&mut state::SliderState)) {
     cb(b)
 }
 
-fn background(foreground: Row, width: f32, height: f32, id: &'static str) -> Rectangle {
+fn slider_icon(id: &'static str, icon_name: impl Into<String>) -> Text {
+    let colors = ColorsService::read();
+    let state = state::SliderStates::get_state(id);
+
+    let color = if state.value <= 0.08 {
+        colors.c.on_secondary_container.as_str()
+    } else {
+        &colors.c.on_primary.as_str()
+    };
+
+    glyph(icon_name).size(16.0).color(color.into())
+}
+
+fn background(
+    foreground: Row,
+    width: f32,
+    height: f32,
+    icon_name: Option<impl Into<String>>,
+    id: &'static str,
+) -> Rectangle {
     let colors = ColorsService::read();
 
-    let icon = Rectangle::new()
-        .width(24.0)
-        .height(height)
-        .child(glyph("volume_up").size(16.0))
-        .align_child(Align::Center, Align::Center)
-        .translate(4.0, HANDLE_HEIGHT / 2.0);
+    let mut stack_child: Vec<Box<dyn Widget>> = vec![Box::new(foreground)];
+
+    if let Some(icon) = icon_name {
+        stack_child.push(Box::new(
+            Rectangle::new()
+                .width(24.0)
+                .height(height)
+                .child(slider_icon(id, icon))
+                .align_child(Align::Center, Align::Center)
+                .translate(4.0, HANDLE_HEIGHT / 2.0),
+        ));
+    }
 
     Rectangle::new()
         .width(width)
         .height(height)
         .fill(colors.c.surface_container.as_str())
-        .child(Stack::new(vec![Box::new(foreground), Box::new(icon)]))
+        .child(Stack::new(stack_child))
         .radius(SLIDER_LEFT_RADIUS)
         .align_child(Align::Start, Align::Center)
         .on_press(move |_| {
@@ -95,6 +115,11 @@ fn background(foreground: Row, width: f32, height: f32, id: &'static str) -> Rec
         })
 }
 
-pub fn slider(width: f32, height: f32, id: &'static str) -> Rectangle {
-    background(bar(width, height, id), width, height, id)
+pub fn slider(
+    width: f32,
+    height: f32,
+    icon_name: Option<impl Into<String>>,
+    id: &'static str,
+) -> Rectangle {
+    background(bar(width, height, id), width, height, icon_name, id)
 }

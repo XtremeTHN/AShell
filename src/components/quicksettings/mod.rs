@@ -1,3 +1,6 @@
+pub mod audio_slider;
+pub mod brightness_slider;
+
 use crate::{
     components::{
         button::button,
@@ -57,11 +60,11 @@ fn top() -> Row {
 }
 
 fn middle() -> Column {
-    Column::new(children!(slider(
-        QUICKSETTINGS_MIN_WIDTH,
-        32.0,
-        "quicksettings-brightness-slider"
-    )))
+    Column::new(children!(
+        brightness_slider::brightness_slider(QUICKSETTINGS_MIN_WIDTH, 32.0),
+        audio_slider::audio_slider(QUICKSETTINGS_MIN_WIDTH, 32.0)
+    ))
+    .gap(10.0)
 }
 fn bottom() {}
 
@@ -81,8 +84,7 @@ fn content() -> Rectangle {
         .child(row)
         .fill(colors.c.background.as_str())
         .align_child(Center, End)
-        .radius(16.0)
-        .border(1.0, colors.c.outline_variant.as_str())
+        .radius(24.0)
         .padding(20.0)
 }
 

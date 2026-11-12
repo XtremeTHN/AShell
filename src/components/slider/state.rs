@@ -12,6 +12,16 @@ pub struct SliderStates {
     pub states: HashMap<&'static str, SliderState>,
 }
 
+impl SliderStates {
+    pub fn get_state(id: &'static str) -> SliderState {
+        SliderStates::read()
+            .states
+            .get(id)
+            .cloned()
+            .unwrap_or_default()
+    }
+}
+
 impl Service for SliderStates {
     fn new() -> Self {
         Default::default()
