@@ -4,8 +4,8 @@ pub mod network;
 pub mod temps;
 
 pub enum Compare {
-    LESS,
-    GREATER,
+    Less,
+    Greater,
 }
 
 pub fn threshold<T: PartialOrd, R>(
@@ -18,8 +18,8 @@ pub fn threshold<T: PartialOrd, R>(
     let mut found_index = None;
     for (index, x) in values.iter().enumerate() {
         let matches = match compare {
-            Compare::LESS => value < *x,
-            Compare::GREATER => value > *x,
+            Compare::Less => value < *x,
+            Compare::Greater => value > *x,
         };
 
         if matches {

@@ -15,7 +15,7 @@ pub fn brightness_slider(width: f32, height: f32) -> Rectangle {
         &[0.20, 0.80],
         vec!["brightness_empty", "brightness_medium"],
         "brightness_7",
-        Compare::LESS,
+        Compare::Less,
     );
 
     slider(width, height, Some(icon), SLIDER_ID)

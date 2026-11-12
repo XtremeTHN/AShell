@@ -1,5 +1,8 @@
 pub mod device;
-use std::{path::PathBuf, time::Duration};
+use std::{
+    path::{Path, PathBuf},
+    time::Duration,
+};
 
 use amane::Service;
 use glob::glob;
@@ -7,8 +10,8 @@ use log::warn;
 
 const MONS_DIR: &str = "/sys/class/hwmon";
 
-fn match_name(path: &PathBuf, _match: &str) -> Option<String> {
-    let mut name_path = path.clone();
+fn match_name(path: &Path, _match: &str) -> Option<String> {
+    let mut name_path = path.to_path_buf();
     name_path.push("name");
 
     let name = std::fs::read_to_string(name_path)
@@ -90,7 +93,7 @@ impl Temperature {
     }
 
     fn get_temp(path: Option<&PathBuf>) -> f32 {
-        path.map(|e| read_temp(e)).unwrap_or(0.0)
+        path.map(read_temp).unwrap_or(0.0)
     }
 
     fn refresh(&mut self) -> bool {

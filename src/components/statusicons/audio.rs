@@ -12,7 +12,7 @@ where
         &thresholds,
         vec!["volume_mute", "volume_down"],
         "volume_up",
-        Compare::LESS,
+        Compare::Less,
     );
 
     String::from(icon)

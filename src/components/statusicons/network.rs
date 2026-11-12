@@ -14,7 +14,7 @@ pub fn wifi_icon_string(strength: u8) -> String {
             "signal_wifi_3_bar",
         ],
         "signal_wifi_4_bar",
-        Compare::LESS,
+        Compare::Less,
     );
 
     String::from(val)
