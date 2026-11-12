@@ -5,9 +5,9 @@ use crate::services::{clock::Clock, colors::ColorsService};
 use super::label::label;
 use super::mrow::{ROW_PADDING, row};
 use super::statusicons::all::all_status;
-use amane::Align::{self, Center, End};
+use amane::Align::{self, End};
 use amane::{
-    Full, Justify, Layer, LayerWindow, Padding, Rectangle, Row, Service, Size::Parent, Text,
+    Full, Justify, Layer, LayerWindow, Padding, Rectangle, Row, Service, Size::Parent,
     Vertical, children,
 };
 

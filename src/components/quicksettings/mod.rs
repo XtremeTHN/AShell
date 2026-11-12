@@ -5,14 +5,13 @@ use crate::{
     components::{
         button::button,
         icon::glyph,
-        mrow::{self, height, wrap},
-        slider::slider,
+        mrow::{self, height},
     },
     services::colors::ColorsService,
 };
 use amane::{
     Align::{Center, End, Start},
-    Column, Justify, LayerWindow, Margin, Padding,
+    Column, Justify, LayerWindow, Margin,
     Radius::Full,
     Rectangle, Row, Service, Widget, children,
 };

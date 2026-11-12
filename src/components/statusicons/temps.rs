@@ -1,5 +1,5 @@
 use amane::Align::Center;
-use amane::{Rectangle, Row, Service, Text, children};
+use amane::{Rectangle, Row, Service, children};
 
 use crate::components::bar::bar_container::bar_container;
 use crate::components::button::to_button;

@@ -1,4 +1,4 @@
-use amane::{Audio, Rectangle, Service};
+use amane::Rectangle;
 
 use crate::components::{
     slider::{slider, state::SliderStates},

@@ -1,4 +1,3 @@
-use std::default;
 
 use amane::Service;
 use serde::Deserialize;

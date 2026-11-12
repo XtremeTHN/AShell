@@ -1,6 +1,6 @@
-use crate::{components::mrow, services::colors::ColorsService};
+use crate::services::colors::ColorsService;
 use amane::{
-    Align, Animation, Radius, Rectangle, Row, Service, Size::Parent, Widget, Workspace, Workspaces,
+    Align, Animation, Radius, Rectangle, Row, Service, Widget, Workspace, Workspaces,
 };
 use std::{
     collections::HashMap,

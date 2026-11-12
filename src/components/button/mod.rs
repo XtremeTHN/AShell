@@ -1,18 +1,15 @@
 mod state;
 
-use std::collections::HashMap;
 
 use crate::{
     components::{
         button::state::ButtonState,
-        label,
-        mrow::{height, wrap},
+        mrow::wrap,
     },
     services::colors::ColorsService,
 };
 
-use super::icon::glyph;
-use amane::{Align::Center, Rectangle, Row, Service, Widget};
+use amane::{Align::Center, Rectangle, Service, Widget};
 
 fn handler(id: &'static str, c: impl Fn(&mut ButtonState)) {
     let mut s = state::ButtonStates::write();

@@ -1,4 +1,3 @@
-use glob::glob;
 
 trait Device {
     fn name() -> String;

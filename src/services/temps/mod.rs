@@ -1,5 +1,5 @@
 pub mod device;
-use std::{path::PathBuf, sync::Mutex, time::Duration};
+use std::{path::PathBuf, time::Duration};
 
 use amane::Service;
 use glob::glob;

@@ -1,8 +1,8 @@
 use crate::{
-    components::{bar::bar_container::bar_container, label::label, mrow},
+    components::{bar::bar_container::bar_container, label::label},
     services::compositor::CompositorService,
 };
-use amane::{Align::Center, Rectangle, Service, Size::Parent, Text};
+use amane::{Align::Center, Rectangle, Service};
 
 pub fn active_window() -> Rectangle {
     let compositor = CompositorService::read();
