@@ -5,7 +5,7 @@ use crate::components::{
     statusicons::audio::audio_icon_string,
 };
 
-const SLIDER_ID: &'static str = "quicksettings-audio-slider";
+const SLIDER_ID: &str = "quicksettings-audio-slider";
 
 pub fn audio_slider(width: f32, height: f32) -> Rectangle {
     let state = SliderStates::get_state(SLIDER_ID);

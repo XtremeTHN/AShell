@@ -5,7 +5,7 @@ use crate::components::{
     statusicons::{Compare, threshold},
 };
 
-const SLIDER_ID: &'static str = "quicksettings-brightness-slider";
+const SLIDER_ID: &str = "quicksettings-brightness-slider";
 
 pub fn brightness_slider(width: f32, height: f32) -> Rectangle {
     let state = SliderStates::get_state(SLIDER_ID);

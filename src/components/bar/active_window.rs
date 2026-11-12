@@ -8,8 +8,7 @@ pub fn active_window() -> Rectangle {
     let compositor = CompositorService::read();
     let active = compositor
         .active_toplevel
-        .as_ref()
-        .and_then(|t| Some(t.title.clone()))
+        .as_ref().map(|t| t.title.clone())
         .unwrap_or_else(|| String::from("ArchLinux"));
 
     let text = label(active);

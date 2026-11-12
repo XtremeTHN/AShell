@@ -16,7 +16,7 @@ pub fn threshold<T: PartialOrd, R>(
     compare: Compare,
 ) -> R {
     let mut found_index = None;
-    for (index, x) in values.into_iter().enumerate() {
+    for (index, x) in values.iter().enumerate() {
         let matches = match compare {
             Compare::LESS => value < *x,
             Compare::GREATER => value > *x,

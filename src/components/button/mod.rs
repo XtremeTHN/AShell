@@ -58,7 +58,7 @@ pub fn to_button_with_callback<T: Fn() + 'static>(
 }
 
 pub fn to_button(rectangle: Rectangle, id: &'static str) -> Rectangle {
-    return to_button_with_callback::<fn()>(rectangle, id, None);
+    to_button_with_callback::<fn()>(rectangle, id, None)
 }
 
 pub fn button<T: Fn() + 'static>(

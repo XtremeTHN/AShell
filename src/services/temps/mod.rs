@@ -5,7 +5,7 @@ use amane::Service;
 use glob::glob;
 use log::warn;
 
-const MONS_DIR: &'static str = "/sys/class/hwmon";
+const MONS_DIR: &str = "/sys/class/hwmon";
 
 fn match_name(path: &PathBuf, _match: &str) -> Option<String> {
     let mut name_path = path.clone();
@@ -90,7 +90,7 @@ impl Temperature {
     }
 
     fn get_temp(path: Option<&PathBuf>) -> f32 {
-        path.and_then(|e| Some(read_temp(e))).unwrap_or(0.0)
+        path.map(|e| read_temp(e)).unwrap_or(0.0)
     }
 
     fn refresh(&mut self) -> bool {

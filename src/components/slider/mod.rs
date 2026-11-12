@@ -66,7 +66,7 @@ fn slider_icon(id: &'static str, icon_name: impl Into<String>) -> Text {
     let color = if state.value <= 0.08 {
         colors.c.on_secondary_container.as_str()
     } else {
-        &colors.c.on_primary.as_str()
+        colors.c.on_primary.as_str()
     };
 
     glyph(icon_name).size(16.0).color(color.into())
