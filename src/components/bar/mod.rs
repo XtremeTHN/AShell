@@ -1,3 +1,5 @@
+use std::sync::{LazyLock, Mutex};
+
 use crate::components::button::to_button;
 use crate::components::statusicons::temps::temperatures;
 use crate::services::{clock::Clock, colors::ColorsService};

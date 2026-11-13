@@ -62,6 +62,15 @@ impl ButtonStates {
     }
 
     pub fn animated_fill(id: &'static str, target: Color) -> Color {
+        {
+            let states = ButtonStates::read();
+            if let Some(fill) = states.fills.get(id) {
+                if fill.target == target {
+                    return fill.fill.value();
+                }
+            }
+        }
+
         let mut s = ButtonStates::write();
         s.fills
             .entry(id)
