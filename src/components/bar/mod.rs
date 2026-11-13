@@ -7,8 +7,8 @@ use super::mrow::{ROW_PADDING, row};
 use super::statusicons::all::all_status;
 use amane::Align::{self, End};
 use amane::{
-    Full, Justify, Layer, LayerWindow, Padding, Rectangle, Row, Service, Size::Parent,
-    Vertical, children,
+    Full, Justify, Layer, LayerWindow, Padding, Rectangle, Row, Service, Size::Parent, Vertical,
+    children,
 };
 
 mod active_window;
@@ -40,17 +40,17 @@ fn clock() -> Rectangle {
 }
 
 fn right() -> Row {
-    let btt = to_button(clock(), "clock");
+    let btt = to_button("clock", clock(), None);
     row(vec![temperatures(), date(), btt], ROW_PADDING)
 }
 
 fn content() -> Rectangle {
-    let background_color = ColorsService::read().c.background.clone();
+    let background = ColorsService::read().c.background.value();
 
     Rectangle::new()
         .width(Parent)
         .height(Parent)
-        .fill(background_color.as_str())
+        .fill(background)
         .padding(Padding {
             left: 10.0,
             right: 10.0,

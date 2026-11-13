@@ -16,9 +16,9 @@ fn handle(base_height: f32, id: &'static str) -> Rectangle {
     let state = state::SliderStates::get_state(id);
 
     let fill = if state.pressed {
-        colors.c.primary_container.as_str()
+        colors.c.primary_container.value()
     } else {
-        colors.c.primary.as_str()
+        colors.c.primary.value()
     };
 
     Rectangle::new()
@@ -29,7 +29,7 @@ fn handle(base_height: f32, id: &'static str) -> Rectangle {
 }
 
 fn bar(width: f32, height: f32, id: &'static str) -> Row {
-    let colors = ColorsService::read();
+    let fill = ColorsService::read().c.primary.value();
     let state = state::SliderStates::get_state(id);
 
     let travel = width - HANDLE_WIDTH;
@@ -41,7 +41,7 @@ fn bar(width: f32, height: f32, id: &'static str) -> Row {
     let rect = Rectangle::new()
         .width(fill_w)
         .height(height)
-        .fill(colors.c.primary.as_str())
+        .fill(fill)
         .radius_top_left(SLIDER_LEFT_RADIUS)
         .radius_bottom_left(SLIDER_LEFT_RADIUS)
         .radius_top_right(SLIDER_RIGHT_RADIUS)
@@ -60,13 +60,15 @@ fn change_value(id: &'static str, cb: impl Fn(&mut state::SliderState)) {
 }
 
 fn slider_icon(id: &'static str, icon_name: impl Into<String>) -> Text {
-    let colors = ColorsService::read();
     let state = state::SliderStates::get_state(id);
 
-    let color = if state.value <= 0.08 {
-        colors.c.on_secondary_container.as_str()
-    } else {
-        colors.c.on_primary.as_str()
+    let color = {
+        let colors = ColorsService::read();
+        if state.value <= 0.08 {
+            colors.c.on_secondary_container.value()
+        } else {
+            colors.c.on_primary.value()
+        }
     };
 
     glyph(icon_name).size(16.0).color(color.into())
@@ -79,7 +81,7 @@ fn background(
     icon_name: Option<impl Into<String>>,
     id: &'static str,
 ) -> Rectangle {
-    let colors = ColorsService::read();
+    let fill = ColorsService::read().c.surface_container.value();
 
     let mut stack_child: Vec<Box<dyn Widget>> = vec![Box::new(foreground)];
 
@@ -97,7 +99,7 @@ fn background(
     Rectangle::new()
         .width(width)
         .height(height)
-        .fill(colors.c.surface_container.as_str())
+        .fill(fill)
         .child(Stack::new(stack_child))
         .radius(SLIDER_LEFT_RADIUS)
         .align_child(Align::Start, Align::Center)

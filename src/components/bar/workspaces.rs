@@ -1,7 +1,5 @@
 use crate::services::colors::ColorsService;
-use amane::{
-    Align, Animation, Radius, Rectangle, Row, Service, Widget, Workspace, Workspaces,
-};
+use amane::{Align, Animation, Radius, Rectangle, Row, Service, Widget, Workspace, Workspaces};
 use std::{
     collections::HashMap,
     sync::{Mutex, OnceLock},
@@ -24,9 +22,9 @@ fn item(wk: &Workspace) -> Rectangle {
 
     let colors = ColorsService::read();
     let background_color = if wk.focused() {
-        colors.c.primary.as_str()
+        colors.c.primary.value()
     } else {
-        colors.c.primary_container.as_str()
+        colors.c.primary_container.value()
     };
 
     Rectangle::new()

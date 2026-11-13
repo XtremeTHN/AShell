@@ -6,5 +6,5 @@ pub fn glyph(icon_name: impl Into<String>) -> Text {
     Text::new(icon_name)
         .font("Material Symbols Rounded")
         .tight()
-        .color(colors.c.on_background.as_str().into())
+        .color(colors.c.on_background.value())
 }

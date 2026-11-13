@@ -20,9 +20,10 @@ pub fn wifi_icon_string(strength: u8) -> String {
     String::from(val)
 }
 
-pub fn network_icon() -> Rectangle {
+pub fn network_icon_string() -> String {
     let net = Network::read();
-    let icon_name = if net.connected() {
+
+    if net.connected() {
         match net.link() {
             Link::Wifi => wifi_icon_string(net.strength()),
             Link::Wired => {
@@ -36,7 +37,11 @@ pub fn network_icon() -> Rectangle {
         }
     } else {
         String::from("signal_wifi_bad")
-    };
+    }
+}
+
+pub fn network_icon() -> Rectangle {
+    let icon_name = network_icon_string();
 
     Rectangle::new()
         .width(16.0)

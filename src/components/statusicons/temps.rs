@@ -32,5 +32,5 @@ pub fn temperatures() -> Rectangle {
 
     let row = Row::new(children!(ricon, cpu_temp, gpu_temp)).gap(5.0);
 
-    to_button(bar_container(row, 30.0), "temperatures")
+    to_button("temperatures", bar_container(row, 30.0), None)
 }

@@ -5,6 +5,7 @@ use crate::services::temps::Temperature;
 
 mod components;
 mod paths;
+mod process;
 mod services;
 
 fn main() {

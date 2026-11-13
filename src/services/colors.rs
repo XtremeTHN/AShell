@@ -1,83 +1,80 @@
-
-use amane::Service;
+use amane::{Animation, Color, Service};
 use serde::Deserialize;
 
 use crate::paths;
 
-#[derive(Debug, Clone, Default, Deserialize)]
-#[serde(default)]
-pub struct Colors {
-    pub background: String,
-    pub error: String,
-    pub error_container: String,
-    pub inverse_on_surface: String,
-    pub inverse_primary: String,
-    pub inverse_surface: String,
-    pub on_background: String,
-    pub on_error: String,
-    pub on_error_container: String,
-    pub on_primary: String,
-    pub on_primary_container: String,
-    pub on_primary_fixed: String,
-    pub on_primary_fixed_variant: String,
-    pub on_secondary: String,
-    pub on_secondary_container: String,
-    pub on_secondary_fixed: String,
-    pub on_secondary_fixed_variant: String,
-    pub on_surface: String,
-    pub on_surface_variant: String,
-    pub on_tertiary: String,
-    pub on_tertiary_container: String,
-    pub on_tertiary_fixed: String,
-    pub on_tertiary_fixed_variant: String,
-    pub outline: String,
-    pub outline_variant: String,
-    pub primary: String,
-    pub primary_container: String,
-    pub primary_fixed: String,
-    pub primary_fixed_dim: String,
-    pub scrim: String,
-    pub secondary: String,
-    pub secondary_container: String,
-    pub secondary_fixed: String,
-    pub secondary_fixed_dim: String,
-    pub shadow: String,
-    pub source_color: String,
-    pub surface: String,
-    pub surface_bright: String,
-    pub surface_container: String,
-    pub surface_container_high: String,
-    pub surface_container_highest: String,
-    pub surface_container_low: String,
-    pub surface_container_lowest: String,
-    pub surface_dim: String,
-    pub surface_tint: String,
-    pub surface_variant: String,
-    pub tertiary: String,
-    pub tertiary_container: String,
-    pub tertiary_fixed: String,
-    pub tertiary_fixed_dim: String,
+/// Used only before the first real palette is loaded.
+const FALLBACK: &str = "#000000";
+
+macro_rules! colors {
+    ($($name:ident),* $(,)?) => {
+        #[derive(Debug, Clone, Default, Deserialize)]
+        #[serde(default)]
+        pub struct RawColors {
+            $(pub $name: String,)*
+        }
+
+        pub struct Colors {
+            $(pub $name: Animation<Color>,)*
+        }
+
+        impl Default for Colors {
+            fn default() -> Self {
+                Self {
+                    $($name: Animation::new(Color::from(FALLBACK)),)*
+                }
+            }
+        }
+
+        impl Colors {
+            fn apply(&mut self, raw: &RawColors, animate: bool) {
+                $(
+                    // An empty string means the key was missing: keep the current color.
+                    if !raw.$name.is_empty() {
+                        let target = Color::from(raw.$name.as_str());
+                        if animate {
+                            self.$name.to(target);
+                        } else {
+                            self.$name = Animation::new(target);
+                        }
+                    }
+                )*
+            }
+        }
+    };
 }
 
-#[derive(Default, Debug)]
+colors! {
+    background, error, error_container, inverse_on_surface, inverse_primary,
+    inverse_surface, on_background, on_error, on_error_container, on_primary,
+    on_primary_container, on_primary_fixed, on_primary_fixed_variant,
+    on_secondary, on_secondary_container, on_secondary_fixed,
+    on_secondary_fixed_variant, on_surface, on_surface_variant, on_tertiary,
+    on_tertiary_container, on_tertiary_fixed, on_tertiary_fixed_variant,
+    outline, outline_variant, primary, primary_container, primary_fixed,
+    primary_fixed_dim, scrim, secondary, secondary_container, secondary_fixed,
+    secondary_fixed_dim, shadow, source_color, surface, surface_bright,
+    surface_container, surface_container_high, surface_container_highest,
+    surface_container_low, surface_container_lowest, surface_dim, surface_tint,
+    surface_variant, tertiary, tertiary_container, tertiary_fixed,
+    tertiary_fixed_dim,
+}
+
+#[derive(Default)]
 pub struct ColorsService {
     pub c: Colors,
 }
 
-fn read_colors() -> Colors {
-    let Some(path) = paths::colors() else {
-        return Default::default();
-    };
+fn read_colors() -> Option<RawColors> {
+    let path = paths::colors()?;
 
-    std::fs::read_to_string(path.as_str())
+    let text = std::fs::read_to_string(path.as_str())
         .inspect_err(|e| log::warn!("Error while loading colors: {}", e))
+        .ok()?;
+
+    serde_json::from_str(&text)
+        .inspect_err(|e| log::warn!("Error while parsing colors: {}", e))
         .ok()
-        .and_then(|v| {
-            serde_json::from_str(v.as_str())
-                .inspect_err(|e| log::warn!("Error while parsing colors: {}", e))
-                .unwrap_or_default()
-        })
-        .unwrap_or_default()
 }
 
 impl Service for ColorsService {
@@ -91,10 +88,30 @@ impl Service for ColorsService {
             return;
         };
 
-        Self::write().c = read_colors();
+        if let Some(raw) = read_colors() {
+            Self::write().c.apply(&raw, false);
+        }
 
         for _ in amane::watch_file(path.as_str()) {
-            Self::write().c = read_colors();
+            if let Some(raw) = read_colors() {
+                Self::write().c.apply(&raw, true);
+            }
+        }
+    }
+}
+
+pub trait ColorMix {
+    fn mix(self, other: Color, t: f32) -> Color;
+}
+
+impl ColorMix for Color {
+    fn mix(self, other: Color, t: f32) -> Color {
+        let m = |a: f32, b: f32| (a + (b - a) * t) as u8;
+        Color {
+            r: m(self.r.into(), other.r.into()),
+            g: m(self.g.into(), other.g.into()),
+            b: m(self.b.into(), other.b.into()),
+            a: m(self.a.into(), other.a.into()),
         }
     }
 }
