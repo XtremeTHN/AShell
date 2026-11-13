@@ -20,6 +20,14 @@ impl SliderStates {
             .cloned()
             .unwrap_or_default()
     }
+
+    pub fn change_value(id: &'static str, fraction: f32, state: SliderState) -> f32 {
+        if !state.pressed && (state.value - fraction).abs() > 0.005 {
+            SliderStates::write().states.entry(id).or_default().value = fraction;
+        }
+
+        if state.pressed { fraction } else { state.value }
+    }
 }
 
 impl Service for SliderStates {

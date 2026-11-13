@@ -10,7 +10,7 @@ use crate::{
         icon::glyph,
         mrow::{self, height},
     },
-    services::colors::ColorsService,
+    services::{backlight::Backlight, colors::ColorsService},
 };
 use amane::{
     Align::{Center, End, Start},
@@ -84,12 +84,21 @@ fn middle() -> Column {
     .width(QUICKSETTINGS_MAX_CONTENT_WIDTH)
     .justify(Justify::SpaceBetween);
 
-    Column::new(children!(
-        first_row,
-        brightness_slider::brightness_slider(QUICKSETTINGS_MAX_CONTENT_WIDTH, 32.0),
-        audio_slider::audio_slider(QUICKSETTINGS_MAX_CONTENT_WIDTH, 32.0)
-    ))
-    .gap(10.0)
+    let mut column_children = children!(first_row);
+
+    if Backlight::read().available {
+        column_children.push(Box::new(brightness_slider::brightness_slider(
+            QUICKSETTINGS_MAX_CONTENT_WIDTH,
+            32.0,
+        )));
+    }
+
+    column_children.push(Box::new(audio_slider::audio_slider(
+        QUICKSETTINGS_MAX_CONTENT_WIDTH,
+        32.0,
+    )));
+
+    Column::new(column_children).gap(10.0)
 }
 
 // fn bottom() {}
@@ -126,7 +135,7 @@ pub fn view() -> LayerWindow {
     let amane::Size::Fixed(height) = c.height() else {
         unreachable!();
     };
-    let visible = QuicksettingsIpc::read().visible;
+    let visible = true;
 
     let a = InputArea {
         x: 0,

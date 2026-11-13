@@ -13,19 +13,7 @@ pub fn audio_slider(width: f32, height: f32) -> Rectangle {
 
     // follows the service unless the user is holding the slider
     let volume_fraction = audio.volume() as f32 / 100.0;
-    if !state.pressed && (state.value - volume_fraction).abs() > 0.005 {
-        SliderStates::write()
-            .states
-            .entry(SLIDER_ID)
-            .or_default()
-            .value = volume_fraction;
-    }
-
-    let value = if state.pressed {
-        state.value
-    } else {
-        volume_fraction
-    };
+    let value = SliderStates::change_value(SLIDER_ID, volume_fraction, state);
     let icon = audio_icon_string(value * 100.0);
 
     slider(width, height, Some(icon), SLIDER_ID, |v| {

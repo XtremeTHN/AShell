@@ -1,7 +1,7 @@
 use amane::{App, Service};
 
-use crate::services::clock;
 use crate::services::temps::Temperature;
+use crate::services::{backlight, clock};
 
 mod components;
 mod paths;
@@ -14,6 +14,7 @@ fn main() {
 
     clock::init_offset();
     drop(clock::Clock::read());
+    drop(backlight::Backlight::read());
 
     Temperature::set_cpu_name("k10temp");
     Temperature::set_gpu_name("amdgpu");
