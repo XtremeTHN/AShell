@@ -80,6 +80,7 @@ fn background(
     height: f32,
     icon_name: Option<impl Into<String>>,
     id: &'static str,
+    on_change: impl Fn(f32) + 'static,
 ) -> Rectangle {
     let fill = ColorsService::read().c.surface_container.value();
 
@@ -114,6 +115,7 @@ fn background(
             let v = ((point.x - HANDLE_WIDTH / 2.0) / travel).clamp(0.0, 1.0);
 
             change_value(id, |s| s.value = v);
+            on_change(v);
         })
 }
 
@@ -122,6 +124,14 @@ pub fn slider(
     height: f32,
     icon_name: Option<impl Into<String>>,
     id: &'static str,
+    on_change: impl Fn(f32) + 'static,
 ) -> Rectangle {
-    background(bar(width, height, id), width, height, icon_name, id)
+    background(
+        bar(width, height, id),
+        width,
+        height,
+        icon_name,
+        id,
+        on_change,
+    )
 }

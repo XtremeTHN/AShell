@@ -9,7 +9,6 @@ use crate::{
         button::button,
         icon::glyph,
         mrow::{self, height},
-        quicksettings::quickbutton::QuickButton,
     },
     services::colors::ColorsService,
 };
@@ -28,6 +27,18 @@ pub const QUICKSETTINGS_MAX_CONTENT_WIDTH: f32 = QUICKSETTINGS_MAX_PANEL_WIDTH -
 
 pub const QUICKSETTINGS_BUTTON_WIDTH: f32 = QUICKSETTINGS_MAX_CONTENT_WIDTH / 2.0 - 5.0;
 pub const QUICKSETTINGS_BUTTON_HEIGHT: f32 = 60.0;
+
+struct QuicksettingsIpc {
+    visible: bool,
+}
+
+impl Service for QuicksettingsIpc {
+    fn new() -> Self {
+        Self { visible: false }
+    }
+
+    fn listen() {}
+}
 
 fn settings_btt() -> Rectangle {
     button(
@@ -80,7 +91,8 @@ fn middle() -> Column {
     ))
     .gap(10.0)
 }
-fn bottom() {}
+
+// fn bottom() {}
 
 fn content() -> Rectangle {
     let background = ColorsService::read().c.background.value();
@@ -102,11 +114,19 @@ fn content() -> Rectangle {
         .padding(20.0)
 }
 
+pub fn toggle(_: &[String]) -> String {
+    let mut ipc = QuicksettingsIpc::write();
+    ipc.visible = !ipc.visible;
+
+    String::new()
+}
+
 pub fn view() -> LayerWindow {
     let c = content();
     let amane::Size::Fixed(height) = c.height() else {
         unreachable!();
     };
+    let visible = QuicksettingsIpc::read().visible;
 
     let a = InputArea {
         x: 0,
@@ -114,7 +134,8 @@ pub fn view() -> LayerWindow {
         width: QUICKSETTINGS_MAX_PANEL_WIDTH as i32,
         height: height as i32,
     };
-    LayerWindow::new()
+
+    let mut w = LayerWindow::new()
         .width(QUICKSETTINGS_MAX_PANEL_WIDTH)
         .height(QUICKSETTINGS_MAX_PANEL_HEIGHT)
         .margin(Margin {
@@ -124,7 +145,11 @@ pub fn view() -> LayerWindow {
         })
         .anchor_vertical(amane::Vertical::Top)
         .anchor_horizontal(amane::Horizontal::Right)
-        .click_through()
-        .input_region(vec![a])
-        .child(c)
+        .child(c);
+
+    if visible {
+        w = w.click_through().input_region(vec![a]);
+    }
+
+    w.visible(visible)
 }

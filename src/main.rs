@@ -21,6 +21,7 @@ fn main() {
     App::new()
         .window(components::bar::view)
         .window(components::quicksettings::view)
+        .ipc("quicksettings", components::quicksettings::toggle)
         .font("Roboto")
         .run();
 }

@@ -27,7 +27,5 @@ impl Service for SliderStates {
         Default::default()
     }
 
-    fn interval() -> Duration {
-        Duration::from_secs(3600)
-    }
+    fn listen() {}
 }

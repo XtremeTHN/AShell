@@ -18,5 +18,5 @@ pub fn brightness_slider(width: f32, height: f32) -> Rectangle {
         Compare::Less,
     );
 
-    slider(width, height, Some(icon), SLIDER_ID)
+    slider(width, height, Some(icon), SLIDER_ID, |v| {})
 }
