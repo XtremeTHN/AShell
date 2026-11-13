@@ -23,5 +23,6 @@ fn main() {
         .window(components::quicksettings::view)
         .ipc("quicksettings", components::quicksettings::toggle)
         .font("Roboto")
+        .animation_fps_limit(90)
         .run();
 }

@@ -9,9 +9,9 @@ pub fn wifi_icon_string(strength: u8) -> String {
         &[20, 40, 60, 80],
         vec![
             "signal_wifi_0_bar",
-            "signal_wifi_1_bar",
-            "signal_wifi_2_bar",
-            "signal_wifi_3_bar",
+            "network_wifi_1_bar",
+            "network_wifi_3_bar",
+            "network_wifi",
         ],
         "signal_wifi_4_bar",
         Compare::Less,

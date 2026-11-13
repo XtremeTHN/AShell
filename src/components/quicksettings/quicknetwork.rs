@@ -25,13 +25,17 @@ pub fn quicknetwork() -> Rectangle {
         _ => default_title,
     };
 
-    let subtitle = threshold(
-        net.strength(),
-        &[20, 60],
-        vec!["Low", "Medium"],
-        "Strong",
-        Compare::Less,
-    );
+    let subtitle = if net.strength() > 0 {
+        threshold(
+            net.strength(),
+            &[20, 60],
+            vec!["Low", "Medium"],
+            "Strong",
+            Compare::Less,
+        )
+    } else {
+        "Offline"
+    };
 
     let state = match net.link() {
         Link::Wifi | Link::Wired => {
@@ -39,6 +43,13 @@ pub fn quicknetwork() -> Rectangle {
                 State::Active
             } else {
                 State::On
+            }
+        }
+        Link::Offline => {
+            if net.wifi_enabled() {
+                State::On
+            } else {
+                State::Off
             }
         }
         _ => State::Off,

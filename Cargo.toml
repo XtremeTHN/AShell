@@ -5,10 +5,9 @@ edition = "2024"
 
 [[bin]]
 name = "amane-shell"
-path = '/home/axel/.config/amane/src/main.rs'
 
 [dependencies]
-amane = { path = '/home/axel/.cache/amane/library' }
+amane = { path = '/home/axel/Git/xtr-amane/' }
 env_logger = "0.11.11"
 glob = "0.3.4"
 log = "0.4.35"
