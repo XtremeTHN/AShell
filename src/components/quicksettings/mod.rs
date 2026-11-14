@@ -135,7 +135,7 @@ pub fn view() -> LayerWindow {
     let amane::Size::Fixed(height) = c.height() else {
         unreachable!();
     };
-    let visible = true;
+    let visible = QuicksettingsIpc::read().visible;
 
     let a = InputArea {
         x: 0,

@@ -108,8 +108,8 @@ impl<T: Fn() + 'static> QuickButton<T> {
         };
 
         let text_color = match state {
-            State::Active | State::On => gcolors.c.on_primary_container.value(),
-            State::Off => gcolors.c.on_surface.value(),
+            State::Active => gcolors.c.on_primary_container.value(),
+            State::Off | State::On => gcolors.c.on_surface.value(),
         };
 
         let icon = Rectangle::new()
@@ -127,7 +127,8 @@ impl<T: Fn() + 'static> QuickButton<T> {
         let title = label(self.title)
             .color(text_color)
             .size(14.0)
-            .weight(Weight::Bold);
+            .weight(Weight::Bold)
+            .elide();
         let subtitle = label_dimmed(self.subtitle.unwrap_or_default(), Some(text_color)).size(11.0);
 
         let column = Column::new(children!(title, subtitle))
