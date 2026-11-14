@@ -7,6 +7,7 @@ mod components;
 mod paths;
 mod process;
 mod services;
+mod states;
 
 fn main() {
     let env = env_logger::Env::default().filter_or("LIFT_LOG", "info");

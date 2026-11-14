@@ -1,6 +1,9 @@
 use std::sync::{LazyLock, Mutex};
 
 use crate::components::button::to_button;
+use crate::components::progress;
+use crate::components::progress::state::ProgressStates;
+use crate::components::statusicons::battery::battery;
 use crate::components::statusicons::temps::temperatures;
 use crate::services::{clock::Clock, colors::ColorsService};
 
@@ -41,9 +44,22 @@ fn clock() -> Rectangle {
     bar_container(row, 30.0)
 }
 
+fn middle() -> Row {
+    battery(60.0, 30.0)
+}
+
 fn right() -> Row {
     let btt = to_button("clock", clock(), None);
-    row(vec![temperatures(), date(), btt], ROW_PADDING)
+    row(
+        vec![
+            temperatures().on_click(|_| {
+                ProgressStates::change_value("prog", 1.0);
+            }),
+            date(),
+            btt,
+        ],
+        ROW_PADDING,
+    )
 }
 
 fn content() -> Rectangle {
@@ -62,7 +78,7 @@ fn content() -> Rectangle {
         })
         .align_child(Align::Center, Align::Center)
         .child(
-            Row::new(children!(left(), right()))
+            Row::new(children!(left(), middle(), right()))
                 .width(Parent)
                 .justify(Justify::SpaceBetween),
         )

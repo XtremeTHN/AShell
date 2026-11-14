@@ -5,6 +5,7 @@ pub mod button;
 pub mod icon;
 pub mod label;
 pub mod mrow;
+pub mod progress;
 pub mod quicksettings;
 pub mod slider;
 pub mod statusicons;
