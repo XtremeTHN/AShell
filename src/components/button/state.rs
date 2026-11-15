@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use amane::{Animation, Color, Service};
 
@@ -39,32 +39,33 @@ impl ButtonFillAnimState {
 
 #[derive(Default)]
 pub struct ButtonStates {
-    pub states: HashMap<&'static str, ButtonState>,
-    pub fills: HashMap<&'static str, ButtonFillAnimState>,
-    pub toggle_states: HashMap<&'static str, ToggleButtonState>,
+    pub states: HashMap<Arc<str>, ButtonState>,
+    pub fills: HashMap<Arc<str>, ButtonFillAnimState>,
+    pub toggle_states: HashMap<Arc<str>, ToggleButtonState>,
 }
 
 impl ButtonStates {
-    pub fn get_btt_state(id: &'static str) -> ButtonState {
+    pub fn get_btt_state(id: impl AsRef<str>) -> ButtonState {
         ButtonStates::read()
             .states
-            .get(id)
-            .cloned()
+            .get(id.as_ref())
+            .copied()
             .unwrap_or_default()
     }
 
-    pub fn get_toggle_btt_state(id: &'static str) -> ToggleButtonState {
+    pub fn get_toggle_btt_state(id: impl AsRef<str>) -> ToggleButtonState {
         ButtonStates::read()
             .toggle_states
-            .get(id)
-            .cloned()
+            .get(id.as_ref())
+            .copied()
             .unwrap_or_default()
     }
 
-    pub fn animated_fill(id: &'static str, target: Color) -> Color {
+    pub fn animated_fill(id: impl Into<Arc<str>>, target: Color) -> Color {
+        let id = id.into();
         {
             let states = ButtonStates::read();
-            if let Some(fill) = states.fills.get(id) {
+            if let Some(fill) = states.fills.get(id.as_ref()) {
                 if fill.target == target {
                     return fill.fill.value();
                 }
@@ -78,9 +79,9 @@ impl ButtonStates {
             .animate_to(target)
     }
 
-    pub fn change_btt_state(id: &'static str, cb: impl Fn(&mut ButtonState)) {
+    pub fn change_btt_state(id: impl Into<Arc<str>>, cb: impl FnOnce(&mut ButtonState)) {
         let mut s = ButtonStates::write();
-        cb(s.states.entry(id).or_default());
+        cb(s.states.entry(id.into()).or_default());
     }
 }
 

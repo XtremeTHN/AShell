@@ -11,12 +11,10 @@ use crate::{
 };
 
 use amane::{Align::Center, Color, Rectangle, Service, Widget};
+use std::sync::Arc;
 
-fn handler(id: &'static str, c: impl Fn(&mut ButtonState)) {
-    let mut s = state::ButtonStates::write();
-    let b = s.states.entry(id).or_default();
-
-    c(b)
+fn handler(id: Arc<str>, c: impl FnOnce(&mut ButtonState)) {
+    state::ButtonStates::change_btt_state(id, c);
 }
 
 pub struct ButtonColors {
@@ -37,11 +35,12 @@ impl Default for ButtonColors {
 }
 
 pub fn to_button_with_callback<T: Fn() + 'static>(
-    id: &'static str,
+    id: impl Into<Arc<str>>,
     rectangle: Rectangle,
     colors: Option<ButtonColors>,
     on_clicked: Option<T>,
 ) -> Rectangle {
+    let id = id.into();
     let colors = colors.unwrap_or_default();
     let state = {
         let service = state::ButtonStates::read();
@@ -56,22 +55,24 @@ pub fn to_button_with_callback<T: Fn() + 'static>(
         colors.idle_color
     };
 
-    let fill = ButtonStates::animated_fill(id, target);
+    let fill = ButtonStates::animated_fill(Arc::clone(&id), target);
+    let hover_id = Arc::clone(&id);
+    let press_id = Arc::clone(&id);
 
     rectangle
         .fill(fill)
         .on_hover(move |hovered| {
-            handler(id, move |s| {
+            handler(Arc::clone(&hover_id), |s| {
                 s.hovered = hovered;
             })
         })
         .on_press(move |_| {
-            handler(id, |s| {
+            handler(Arc::clone(&press_id), |s| {
                 s.pressed = true;
             });
         })
         .on_release(move |_| {
-            handler(id, |s| s.pressed = false);
+            handler(Arc::clone(&id), |s| s.pressed = false);
             if let Some(cb) = on_clicked.as_ref() {
                 cb()
             }
@@ -79,7 +80,7 @@ pub fn to_button_with_callback<T: Fn() + 'static>(
 }
 
 pub fn to_button(
-    id: &'static str,
+    id: impl Into<Arc<str>>,
     rectangle: Rectangle,
     colors: Option<ButtonColors>,
 ) -> Rectangle {
@@ -89,7 +90,7 @@ pub fn to_button(
 pub fn button(
     child: impl Widget + 'static,
     height: f32,
-    id: &'static str,
+    id: impl Into<Arc<str>>,
     on_clicked: Option<impl Fn() + 'static>,
 ) -> Rectangle {
     let r = wrap(child, height).align_child(Center, Center);
