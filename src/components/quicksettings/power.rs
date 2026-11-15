@@ -35,13 +35,22 @@ fn power_btt_menu() -> Rectangle {
                 vec![
                     PopupMenuItem::new(ITEMS_OWNER)
                         .icon_name("restart_alt")
-                        .label("Reboot"),
+                        .label("Reboot")
+                        .callback(|| {
+                            Logind::reboot();
+                        }),
                     PopupMenuItem::new(ITEMS_OWNER)
                         .icon_name("bedtime")
-                        .label("Suspend"),
+                        .label("Suspend")
+                        .callback(|| {
+                            Logind::suspend();
+                        }),
                     PopupMenuItem::new(ITEMS_OWNER)
                         .icon_name("logout")
-                        .label("Log Out"),
+                        .label("Log Out")
+                        .callback(|| {
+                            Logind::log_out();
+                        }),
                 ],
                 popup_x,
                 popup_y,
