@@ -11,6 +11,11 @@ pub struct PopupState {
 }
 
 impl PopupState {
+    pub fn hide() {
+        let mut s = PopupState::write();
+        s.visible = false;
+        s.opacity.to(0.0);
+    }
     pub fn toggle(owner_id: &'static str, data: Vec<PopupMenuItem>, x: f32, y: f32) {
         let mut this = Self::write();
 

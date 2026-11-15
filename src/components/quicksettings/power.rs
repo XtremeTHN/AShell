@@ -63,7 +63,9 @@ fn power_btt() -> Rectangle {
         glyph("mode_off_on").size(16.0),
         TOP_MAX_HEIGHT,
         "quicksettings-power-btt",
-        Some(|| {}),
+        Some(|| {
+            Logind::power_off();
+        }),
     )
 }
 

@@ -57,6 +57,8 @@ fn popup_button(item: &menu::PopupMenuItem) -> Rectangle {
             if let Some(callback) = &cb {
                 callback();
             }
+
+            state::PopupState::hide();
         }),
     )
 }
