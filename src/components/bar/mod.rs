@@ -1,4 +1,5 @@
 use crate::components::button::to_button;
+use crate::components::popup::{PopupMenuItem, PopupState};
 use crate::components::statusicons::temps::temperatures;
 use crate::services::{clock::Clock, colors::ColorsService};
 
@@ -6,6 +7,7 @@ use super::label::label;
 use super::mrow::{ROW_PADDING, row};
 use super::statusicons::all::all_status;
 use amane::Align::{self, End};
+use amane::Cursor::Wait;
 use amane::{
     Full, Justify, Layer, LayerWindow, Padding, Rectangle, Row, Service, Size::Parent, Vertical,
     children,
@@ -41,7 +43,21 @@ fn clock() -> Rectangle {
 
 fn right() -> Row {
     let btt = to_button("clock", clock(), None);
-    row(vec![temperatures(), date(), btt], ROW_PADDING)
+    row(
+        vec![
+            temperatures().on_click(|_| {
+                PopupState::toggle(
+                    "quick",
+                    vec![PopupMenuItem::new("quick").icon_name("home").label("Home")],
+                    1000.0,
+                    600.0,
+                );
+            }),
+            date(),
+            btt,
+        ],
+        ROW_PADDING,
+    )
 }
 
 fn content() -> Rectangle {

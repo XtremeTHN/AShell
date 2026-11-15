@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use amane::{
-    Align, Column, InputArea, Justify, Layer, LayerWindow, Padding, Rectangle, Row, Service,
+    Align, Animation, Column, InputArea, Justify, Layer, LayerWindow, Padding, Rectangle, Row,
+    Service,
     Size::{self, Parent},
     Stack, Widget, children,
 };
@@ -72,13 +73,13 @@ impl PopupMenuItem {
     }
 }
 
-#[derive(Default)]
 pub struct PopupState {
-    pub x: f32,
-    pub y: f32,
+    pub x: Animation<f32>,
+    pub y: Animation<f32>,
+    pub opacity: Animation<f32>,
     pub data: Vec<PopupMenuItem>,
     pub current_owner_id: Option<&'static str>,
-    pub visible: bool,
+    pub visible: bool, // logical state: open or closed
 }
 
 impl PopupState {
@@ -88,55 +89,39 @@ impl PopupState {
         if this.visible && this.current_owner_id == Some(owner_id) {
             this.visible = false;
             this.current_owner_id = None;
+            this.opacity.to(0.0); // fade out
             return;
+        }
+
+        if this.visible {
+            this.x.to(x);
+            this.y.to(y);
+        } else {
+            this.x = Animation::new(x);
+            this.y = Animation::new(y);
+            this.opacity = Animation::new(0.0);
+            this.opacity.to(1.0);
         }
 
         this.current_owner_id = Some(owner_id);
         this.data = data;
-        this.x = x;
-        this.y = y;
         this.visible = true;
-    }
-
-    pub fn toggle_from_quicksettings(
-        owner_id: &'static str,
-        data: Vec<PopupMenuItem>,
-        pointer_x: f32,
-        pointer_y: f32,
-        button_height: f32,
-        panel_width: f32,
-        screen_width: f32,
-        right_margin: f32,
-    ) {
-        let panel_x = screen_width - panel_width - right_margin;
-        let popup_x = panel_x + pointer_x;
-        let popup_y = pointer_y + button_height;
-        Self::toggle(owner_id, data, popup_x, popup_y);
     }
 }
 
 impl Service for PopupState {
     fn new() -> Self {
-        Self::default()
+        Self {
+            x: Animation::new(0.0),
+            y: Animation::new(0.0),
+            opacity: Animation::new(0.0),
+            data: vec![],
+            current_owner_id: None,
+            visible: false,
+        }
     }
 
     fn listen() {}
-}
-
-pub fn fully_wrap(child: impl Widget + 'static) -> Rectangle {
-    Rectangle::new()
-        .width(get_width(&child))
-        .height(get_height(&child))
-        .child(child)
-        .align_child(Align::Center, Align::Center)
-}
-
-fn icon_slot(name: &str) -> Rectangle {
-    Rectangle::new()
-        .width(20.0)
-        .height(20.0)
-        .child(glyph(name))
-        .align_child(Align::Center, Align::Center)
 }
 
 fn popup_separator() -> Rectangle {
@@ -204,6 +189,7 @@ pub fn popup() -> (Rectangle, InputArea) {
     let width = get_width(&row);
     let height = get_height(&row);
 
+    let (x, y) = (state.x.value(), state.y.value());
     let colors = ColorsService::read();
     let rect = Rectangle::new()
         .width(width)
@@ -212,8 +198,9 @@ pub fn popup() -> (Rectangle, InputArea) {
         .radius(16.0)
         .fill(colors.c.surface_container.value())
         .child(row)
+        .opacity(state.opacity.value())
         .align_child(Align::Center, Align::Center)
-        .translate(state.x, state.y);
+        .translate(x, y);
 
     let Size::Fixed(width) = width else {
         unreachable!()
@@ -224,8 +211,8 @@ pub fn popup() -> (Rectangle, InputArea) {
     };
 
     let region = InputArea {
-        x: state.x as i32,
-        y: state.y as i32,
+        x: x as i32,
+        y: y as i32,
         width: width.ceil() as i32,
         height: height.ceil() as i32,
     };
@@ -235,7 +222,10 @@ pub fn popup() -> (Rectangle, InputArea) {
 
 pub fn view() -> LayerWindow {
     let (pop, region) = popup();
-    let visible = PopupState::read().visible;
+    let shown = {
+        let s = PopupState::read();
+        s.visible || s.opacity.value() > 0.0
+    };
 
     LayerWindow::new()
         .width(1920.0)
@@ -243,7 +233,7 @@ pub fn view() -> LayerWindow {
         .layer(Layer::Overlay)
         .click_through()
         .child(pop)
-        .visible(visible)
+        .visible(shown)
         .namespace("amane-popup")
         .input_region(vec![region])
 }
