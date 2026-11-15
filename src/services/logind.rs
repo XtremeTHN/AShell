@@ -27,7 +27,7 @@ fn manager(method: &str, arguments: &[Argument]) -> Value {
 
 fn session(method: &str, arguments: &[Argument]) -> Value {
     let login = Logind::read();
-    login.session.call(
+    login.system.call(
         "org.freedesktop.login1",
         "/org/freedesktop/login1/session/auto",
         "org.freedesktop.login1.Session",
@@ -52,10 +52,11 @@ impl Logind {
         }
     }
 
-    fn no_check_operation(target: Target, operation: &'static str, timeout: u64) {
+    fn no_check_operation(target: Target, operation: &'static str, timeout: u64, has_args: bool) {
         spawn(move || {
             std::thread::sleep(Duration::from_millis(timeout));
-            manager(operation, &arguments!(false));
+            let args = if has_args { arguments!(false) } else { vec![] };
+            exec(target, operation, &args);
         });
     }
 
@@ -64,7 +65,7 @@ impl Logind {
 
         if can {
             // TODO: NOTIFY
-            Self::no_check_operation(target, operation, timeout);
+            Self::no_check_operation(target, operation, timeout, true);
         } else {
             // TODO: NOTIFY
         }
@@ -83,7 +84,7 @@ impl Logind {
     }
 
     pub fn log_out() {
-        Self::no_check_operation(Target::Session, "Terminate", 1000);
+        Self::no_check_operation(Target::Session, "Terminate", 1000, false);
     }
 }
 
