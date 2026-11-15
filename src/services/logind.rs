@@ -83,7 +83,7 @@ impl Logind {
     }
 
     pub fn log_out() {
-        Self::no_check_operation(Target::Session, "Logout", 1000);
+        Self::no_check_operation(Target::Session, "Terminate", 1000);
     }
 }
 
