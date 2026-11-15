@@ -25,7 +25,7 @@ pub enum ItemRole {
 }
 
 pub struct PopupMenuItem {
-    owner: Option<String>,
+    owner: String,
     icon_name: Option<String>,
     label: Option<String>,
     callback: Option<PopupMenuItemCallback>,
@@ -33,27 +33,37 @@ pub struct PopupMenuItem {
 }
 
 impl PopupMenuItem {
-    pub fn new<F>(
-        owner: impl Into<String>,
-        icon_name: Option<String>,
-        label: impl Into<String>,
-        callback: Option<F>,
-    ) -> Self
-    where
-        F: Fn() + Send + Sync + 'static,
-    {
+    pub fn new(owner: impl Into<String>) -> Self {
         Self {
-            owner: Some(owner.into()),
-            icon_name,
-            label: Some(label.into()),
-            callback: callback.map(|callback| Arc::new(callback) as PopupMenuItemCallback),
+            owner: owner.into(),
+            label: None,
+            icon_name: None,
+            callback: None,
             role: ItemRole::Button,
         }
     }
 
+    pub fn callback<F>(mut self, callback: F) -> Self
+    where
+        F: Fn() + Send + Sync + 'static,
+    {
+        self.callback = Some(Arc::new(callback) as PopupMenuItemCallback);
+        self
+    }
+
+    pub fn icon_name(mut self, icon_name: impl Into<String>) -> Self {
+        self.icon_name = Some(icon_name.into());
+        self
+    }
+
+    pub fn label(mut self, label: impl Into<String>) -> Self {
+        self.label = Some(label.into());
+        self
+    }
+
     pub fn new_separator() -> Self {
         Self {
-            owner: None,
+            owner: String::from("separator"),
             icon_name: None,
             label: None,
             role: ItemRole::Separator,
@@ -67,15 +77,41 @@ pub struct PopupState {
     pub x: f32,
     pub y: f32,
     pub data: Vec<PopupMenuItem>,
+    pub current_owner_id: Option<&'static str>,
     pub visible: bool,
 }
 
 impl PopupState {
-    pub fn change_content(data: Vec<PopupMenuItem>, x: f32, y: f32) {
+    pub fn toggle(owner_id: &'static str, data: Vec<PopupMenuItem>, x: f32, y: f32) {
         let mut this = Self::write();
+
+        if this.visible && this.current_owner_id == Some(owner_id) {
+            this.visible = false;
+            this.current_owner_id = None;
+            return;
+        }
+
+        this.current_owner_id = Some(owner_id);
         this.data = data;
         this.x = x;
         this.y = y;
+        this.visible = true;
+    }
+
+    pub fn toggle_from_quicksettings(
+        owner_id: &'static str,
+        data: Vec<PopupMenuItem>,
+        pointer_x: f32,
+        pointer_y: f32,
+        button_height: f32,
+        panel_width: f32,
+        screen_width: f32,
+        right_margin: f32,
+    ) {
+        let panel_x = screen_width - panel_width - right_margin;
+        let popup_x = panel_x + pointer_x;
+        let popup_y = pointer_y + button_height;
+        Self::toggle(owner_id, data, popup_x, popup_y);
     }
 }
 
@@ -134,11 +170,7 @@ fn popup_button(item: &PopupMenuItem) -> Rectangle {
         .radius(12.0)
         .align_child(Align::Start, Align::Center);
 
-    let id = format!(
-        "{}:{}",
-        item.owner.as_ref().unwrap(),
-        item.label.as_ref().unwrap()
-    );
+    let id = format!("{}:{}", item.owner.as_str(), item.label.as_ref().unwrap());
 
     let cb = item.callback.clone();
     to_button_with_callback(
@@ -212,5 +244,6 @@ pub fn view() -> LayerWindow {
         .click_through()
         .child(pop)
         .visible(visible)
+        .namespace("amane-popup")
         .input_region(vec![region])
 }

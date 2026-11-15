@@ -56,11 +56,17 @@ pub fn to_button_with_callback<T: Fn() + 'static>(
     };
 
     let fill = ButtonStates::animated_fill(Arc::clone(&id), target);
+    let drag_id = Arc::clone(&id);
     let hover_id = Arc::clone(&id);
     let press_id = Arc::clone(&id);
 
     rectangle
         .fill(fill)
+        .on_drag(move |p| {
+            handler(Arc::clone(&drag_id), move |s| {
+                s.point = Some(p);
+            });
+        })
         .on_hover(move |hovered| {
             handler(Arc::clone(&hover_id), |s| {
                 s.hovered = hovered;
@@ -87,11 +93,11 @@ pub fn to_button(
     to_button_with_callback::<fn()>(id, rectangle, colors, None)
 }
 
-pub fn button(
+pub fn button<T: Fn() + 'static>(
     child: impl Widget + 'static,
     height: f32,
     id: impl Into<Arc<str>>,
-    on_clicked: Option<impl Fn() + 'static>,
+    on_clicked: Option<T>,
 ) -> Rectangle {
     let r = wrap(child, height).align_child(Center, Center);
 

@@ -1,11 +1,12 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
-use amane::{Animation, Color, Service};
+use amane::{Animation, Color, Point, Service};
 
 #[derive(Default, Clone, Copy)]
 pub struct ButtonState {
     pub hovered: bool,
     pub pressed: bool,
+    pub point: Option<Point>,
 }
 
 #[derive(Default, Clone, Copy)]

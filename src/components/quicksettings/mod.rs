@@ -1,5 +1,6 @@
 pub mod audio_slider;
 pub mod brightness_slider;
+pub mod power;
 pub mod quickbluetooth;
 pub mod quickbutton;
 pub mod quicknetwork;
@@ -51,26 +52,8 @@ fn settings_btt() -> Rectangle {
     .radius(Full)
 }
 
-fn power_btt() -> Row {
-    let pw = button(
-        glyph("mode_off_on").size(16.0),
-        TOP_MAX_HEIGHT,
-        "quicksettings-power-btt",
-        Some(|| {}),
-    );
-
-    let more = button(
-        glyph("keyboard_arrow_down").size(18.0),
-        TOP_MAX_HEIGHT,
-        "quicksettings-power-more-bt",
-        Some(|| {}),
-    );
-
-    mrow::row(vec![pw, more], 10.0)
-}
-
 fn top() -> Row {
-    Row::new(children!(settings_btt(), power_btt()))
+    Row::new(children!(settings_btt(), power::power_group()))
         .gap(5.0)
         .width(QUICKSETTINGS_MAX_CONTENT_WIDTH)
         .justify(Justify::SpaceBetween)
