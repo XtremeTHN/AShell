@@ -1,5 +1,5 @@
 use crate::components::button::to_button;
-use crate::components::popup::{PopupMenuItem, PopupState};
+use crate::components::popup::{menu::PopupMenuItem, state::PopupState};
 use crate::components::statusicons::temps::temperatures;
 use crate::services::{clock::Clock, colors::ColorsService};
 
@@ -7,7 +7,6 @@ use super::label::label;
 use super::mrow::{ROW_PADDING, row};
 use super::statusicons::all::all_status;
 use amane::Align::{self, End};
-use amane::Cursor::Wait;
 use amane::{
     Full, Justify, Layer, LayerWindow, Padding, Rectangle, Row, Service, Size::Parent, Vertical,
     children,

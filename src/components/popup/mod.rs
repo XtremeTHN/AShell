@@ -1,10 +1,8 @@
-use std::sync::Arc;
+pub mod menu;
+pub mod state;
 
 use amane::{
-    Align, Animation, Column, InputArea, Justify, Layer, LayerWindow, Padding, Rectangle, Row,
-    Service,
-    Size::{self, Parent},
-    Stack, Widget, children,
+    Align, Column, InputArea, Layer, LayerWindow, Rectangle, Row, Service, Size, Widget, children,
 };
 
 use crate::{
@@ -17,113 +15,6 @@ use crate::{
     services::colors::ColorsService,
 };
 
-pub type PopupMenuItemCallback = Arc<dyn Fn() + Send + Sync + 'static>;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ItemRole {
-    Button,
-    Separator,
-}
-
-pub struct PopupMenuItem {
-    owner: String,
-    icon_name: Option<String>,
-    label: Option<String>,
-    callback: Option<PopupMenuItemCallback>,
-    role: ItemRole,
-}
-
-impl PopupMenuItem {
-    pub fn new(owner: impl Into<String>) -> Self {
-        Self {
-            owner: owner.into(),
-            label: None,
-            icon_name: None,
-            callback: None,
-            role: ItemRole::Button,
-        }
-    }
-
-    pub fn callback<F>(mut self, callback: F) -> Self
-    where
-        F: Fn() + Send + Sync + 'static,
-    {
-        self.callback = Some(Arc::new(callback) as PopupMenuItemCallback);
-        self
-    }
-
-    pub fn icon_name(mut self, icon_name: impl Into<String>) -> Self {
-        self.icon_name = Some(icon_name.into());
-        self
-    }
-
-    pub fn label(mut self, label: impl Into<String>) -> Self {
-        self.label = Some(label.into());
-        self
-    }
-
-    pub fn new_separator() -> Self {
-        Self {
-            owner: String::from("separator"),
-            icon_name: None,
-            label: None,
-            role: ItemRole::Separator,
-            callback: None,
-        }
-    }
-}
-
-pub struct PopupState {
-    pub x: Animation<f32>,
-    pub y: Animation<f32>,
-    pub opacity: Animation<f32>,
-    pub data: Vec<PopupMenuItem>,
-    pub current_owner_id: Option<&'static str>,
-    pub visible: bool, // logical state: open or closed
-}
-
-impl PopupState {
-    pub fn toggle(owner_id: &'static str, data: Vec<PopupMenuItem>, x: f32, y: f32) {
-        let mut this = Self::write();
-
-        if this.visible && this.current_owner_id == Some(owner_id) {
-            this.visible = false;
-            this.current_owner_id = None;
-            this.opacity.to(0.0); // fade out
-            return;
-        }
-
-        if this.visible {
-            this.x.to(x);
-            this.y.to(y);
-        } else {
-            this.x = Animation::new(x);
-            this.y = Animation::new(y);
-            this.opacity = Animation::new(0.0);
-            this.opacity.to(1.0);
-        }
-
-        this.current_owner_id = Some(owner_id);
-        this.data = data;
-        this.visible = true;
-    }
-}
-
-impl Service for PopupState {
-    fn new() -> Self {
-        Self {
-            x: Animation::new(0.0),
-            y: Animation::new(0.0),
-            opacity: Animation::new(0.0),
-            data: vec![],
-            current_owner_id: None,
-            visible: false,
-        }
-    }
-
-    fn listen() {}
-}
-
 fn popup_separator() -> Rectangle {
     let colors = ColorsService::read();
     Rectangle::new()
@@ -132,7 +23,7 @@ fn popup_separator() -> Rectangle {
         .fill(colors.c.outline_variant.value())
 }
 
-fn popup_button(item: &PopupMenuItem) -> Rectangle {
+fn popup_button(item: &menu::PopupMenuItem) -> Rectangle {
     let icon_slot = if let Some(icon_name) = item.icon_name.as_ref() {
         Rectangle::new()
             .width(24.0)
@@ -171,15 +62,15 @@ fn popup_button(item: &PopupMenuItem) -> Rectangle {
 }
 
 pub fn popup() -> (Rectangle, InputArea) {
-    let state = PopupState::read();
+    let state = state::PopupState::read();
     let mut children: Vec<Box<dyn Widget>> = vec![];
 
     for x in state.data.iter() {
         match x.role {
-            ItemRole::Button => {
+            menu::ItemRole::Button => {
                 children.push(Box::new(popup_button(x)));
             }
-            ItemRole::Separator => {
+            menu::ItemRole::Separator => {
                 children.push(Box::new(popup_separator()));
             }
         }
@@ -223,7 +114,7 @@ pub fn popup() -> (Rectangle, InputArea) {
 pub fn view() -> LayerWindow {
     let (pop, region) = popup();
     let shown = {
-        let s = PopupState::read();
+        let s = state::PopupState::read();
         s.visible || s.opacity.value() > 0.0
     };
 

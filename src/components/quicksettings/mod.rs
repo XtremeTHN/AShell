@@ -6,11 +6,7 @@ pub mod quickbutton;
 pub mod quicknetwork;
 
 use crate::{
-    components::{
-        button::button,
-        icon::glyph,
-        mrow::{self, height},
-    },
+    components::{button::button, icon::glyph, mrow::height},
     services::{backlight::Backlight, colors::ColorsService},
 };
 use amane::{

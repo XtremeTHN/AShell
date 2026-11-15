@@ -1,5 +1,5 @@
 use super::Widgets;
-use amane::{Rectangle, Row, Service, Size, Widget};
+use amane::{Rectangle, Row, Size, Widget};
 
 const OUTTER_RADIUS: f32 = 16.0;
 const INNER_RADIUS: f32 = 4.0;

@@ -1,11 +1,8 @@
 use crate::{
-    components::{
-        mrow::width,
-        progress::{ProgressColors, battery::battery_progress, state::ProgressStates},
-    },
+    components::progress::{ProgressColors, battery::battery_progress, state::ProgressStates},
     services::colors::ColorsService,
 };
-use amane::{Battery, Row, Service, Size};
+use amane::{Battery, Row, Service};
 
 const PROGRESS_ID: &str = "status-battery";
 

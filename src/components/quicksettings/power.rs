@@ -2,11 +2,10 @@ use amane::{Rectangle, Row};
 
 use super::{QUICKSETTINGS_MAX_PANEL_WIDTH, TOP_MAX_HEIGHT};
 use crate::components::{
-    button::{button, state::ButtonStates},
+    button::button,
     icon::glyph,
     mrow::row,
-    popup::{PopupMenuItem, PopupState},
-    quicksettings::QUICKSETTINGS_MAX_CONTENT_WIDTH,
+    popup::{menu::PopupMenuItem, state::PopupState},
 };
 use crate::services::logind::Logind;
 

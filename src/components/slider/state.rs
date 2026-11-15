@@ -1,5 +1,5 @@
 use amane::Service;
-use std::{collections::HashMap, time::Duration};
+use std::collections::HashMap;
 
 #[derive(Default, Clone, Copy)]
 pub struct SliderState {

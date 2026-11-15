@@ -1,9 +1,8 @@
 use crate::{
     components::{
-        button::{ButtonColors, state::ButtonStates, stateful::to_stateful_button},
+        button::{ButtonColors, stateful::to_stateful_button},
         icon::glyph,
         label::{label, label_dimmed},
-        mrow::width,
     },
     services::colors::{ColorMix, ColorsService},
 };
