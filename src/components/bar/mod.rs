@@ -1,6 +1,7 @@
 use std::sync::{LazyLock, Mutex};
 
 use crate::components::button::to_button;
+use crate::components::popup::PopupState;
 use crate::components::progress;
 use crate::components::progress::state::ProgressStates;
 use crate::components::statusicons::temps::temperatures;
@@ -48,7 +49,12 @@ fn right() -> Row {
     row(
         vec![
             temperatures().on_click(|_| {
-                ProgressStates::change_value("prog", 1.0);
+                // ProgressStates::change_value("prog", 1.0);
+                PopupState::set_content(
+                    Rectangle::new().width(100.0).height(100.0).fill("#fffff"),
+                    1920.0,
+                    500.0,
+                );
             }),
             date(),
             btt,

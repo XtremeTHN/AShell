@@ -25,7 +25,7 @@ pub fn quicknetwork() -> Rectangle {
         _ => default_title,
     };
 
-    let subtitle = if net.strength() > 0 {
+    let subtitle = if net.link() == Link::Wifi && net.strength() > 0 {
         threshold(
             net.strength(),
             &[20, 60],
@@ -33,6 +33,8 @@ pub fn quicknetwork() -> Rectangle {
             "Strong",
             Compare::Less,
         )
+    } else if net.connected() {
+        "Connected"
     } else {
         "Offline"
     };

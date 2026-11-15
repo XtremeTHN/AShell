@@ -23,6 +23,7 @@ fn main() {
     App::new()
         .window(components::bar::view)
         .window(components::quicksettings::view)
+        .window(components::popup::view)
         .ipc("quicksettings", components::quicksettings::toggle)
         .font("Roboto")
         .animation_fps_limit(90)
