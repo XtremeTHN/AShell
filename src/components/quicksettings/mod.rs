@@ -6,7 +6,7 @@ pub mod quickbutton;
 pub mod quicknetwork;
 
 use crate::{
-    components::{button::button, icon::glyph, mrow::height},
+    components::{button::circular_button, icon::glyph, mrow::height},
     services::{backlight::Backlight, colors::ColorsService},
 };
 use amane::{
@@ -38,14 +38,14 @@ impl Service for QuicksettingsIpc {
 }
 
 fn settings_btt() -> Rectangle {
-    button(
+    circular_button(
+        "quicksettings-settings-btt",
         glyph("settings").size(16.0),
         TOP_MAX_HEIGHT,
-        "quicksettings-settings-btt",
+        None,
         Some(|| {}),
     )
     .padding(10.0)
-    .radius(Full)
 }
 
 fn top() -> Row {

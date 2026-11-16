@@ -23,12 +23,13 @@ fn power_btt_menu() -> Rectangle {
     let content_right = panel_x + QUICKSETTINGS_MAX_PANEL_WIDTH - PANEL_PADDING;
 
     let popup_x = content_right - POPUP_WIDTH + 10.0;
-    let popup_y = PANEL_MARGIN_TOP + PANEL_PADDING + TOP_MAX_HEIGHT + POPUP_GAP + 40.0;
+    let popup_y = PANEL_MARGIN_TOP + PANEL_PADDING + TOP_MAX_HEIGHT + POPUP_GAP + 15.0;
 
     button(
+        "quicksettings-power-more-bt",
         glyph("keyboard_arrow_down").size(18.0),
         TOP_MAX_HEIGHT,
-        "quicksettings-power-more-bt",
+        None,
         Some(move || {
             PopupState::toggle(
                 ITEMS_OWNER,
@@ -60,9 +61,10 @@ fn power_btt_menu() -> Rectangle {
 }
 fn power_btt() -> Rectangle {
     button(
+        "quicksettings-power-btt",
         glyph("mode_off_on").size(16.0),
         TOP_MAX_HEIGHT,
-        "quicksettings-power-btt",
+        None,
         Some(|| {
             Logind::power_off();
         }),

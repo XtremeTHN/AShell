@@ -11,17 +11,10 @@ use crate::{
         icon::glyph,
         label::label,
         mrow::{height as get_height, width as get_width},
+        separator::{Orientation, separator},
     },
     services::colors::ColorsService,
 };
-
-fn popup_separator() -> Rectangle {
-    let colors = ColorsService::read();
-    Rectangle::new()
-        .width(110.0)
-        .height(1.0)
-        .fill(colors.c.outline_variant.value())
-}
 
 fn popup_button(item: &menu::PopupMenuItem) -> Rectangle {
     let icon_slot = if let Some(icon_name) = item.icon_name.as_ref() {
@@ -73,7 +66,7 @@ pub fn popup() -> (Rectangle, InputArea) {
                 children.push(Box::new(popup_button(x)));
             }
             menu::ItemRole::Separator => {
-                children.push(Box::new(popup_separator()));
+                children.push(Box::new(separator(Orientation::Horizontal, 110.0)));
             }
         }
     }

@@ -9,11 +9,9 @@ pub struct ButtonState {
     pub point: Option<Point>,
 }
 
-#[derive(Default, Clone, Copy)]
-pub struct ToggleButtonState {
-    pub hovered: bool,
-    pub pressed: bool,
-    pub checked: bool,
+#[derive(Debug, Default, Clone)]
+pub struct ButtonGroupState {
+    pub active_id: Arc<str>,
 }
 
 pub struct ButtonFillAnimState {
@@ -42,7 +40,7 @@ impl ButtonFillAnimState {
 pub struct ButtonStates {
     pub states: HashMap<Arc<str>, ButtonState>,
     pub fills: HashMap<Arc<str>, ButtonFillAnimState>,
-    pub toggle_states: HashMap<Arc<str>, ToggleButtonState>,
+    pub group_state: HashMap<Arc<str>, ButtonGroupState>,
 }
 
 impl ButtonStates {
@@ -54,12 +52,32 @@ impl ButtonStates {
             .unwrap_or_default()
     }
 
-    pub fn get_toggle_btt_state(id: impl AsRef<str>) -> ToggleButtonState {
-        ButtonStates::read()
-            .toggle_states
-            .get(id.as_ref())
-            .copied()
-            .unwrap_or_default()
+    pub fn new_button_group(id: impl Into<Arc<str>>, initial: impl Into<Arc<str>>) {
+        let _id = id.into();
+        let present = { ButtonStates::read().group_state.contains_key(&_id) };
+
+        if present {
+            return;
+        }
+
+        let state = ButtonGroupState {
+            active_id: initial.into(),
+        };
+        ButtonStates::write().group_state.insert(_id, state);
+    }
+
+    pub fn get_active_button_in_group(group_id: impl Into<Arc<str>>) -> Arc<str> {
+        let state = ButtonStates::read();
+        let group = state.group_state.get(&group_id.into()).unwrap();
+
+        group.active_id.clone()
+    }
+
+    pub fn set_active_button_in_group(group_id: impl Into<Arc<str>>, btt_id: impl Into<Arc<str>>) {
+        ButtonStates::write()
+            .group_state
+            .entry(group_id.into())
+            .and_modify(|e| e.active_id = btt_id.into());
     }
 
     pub fn animated_fill(id: impl Into<Arc<str>>, target: Color) -> Color {

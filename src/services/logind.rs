@@ -86,6 +86,10 @@ impl Logind {
     pub fn log_out() {
         Self::no_check_operation(Target::Session, "Terminate", 1000, false);
     }
+
+    pub fn set_brightness(device: &str, value: u32) {
+        session("SetBrightness", &arguments!("backlight", device, value,));
+    }
 }
 
 impl Service for Logind {

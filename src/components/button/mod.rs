@@ -7,10 +7,10 @@ use crate::{
         button::state::{ButtonState, ButtonStates},
         mrow::wrap,
     },
-    services::colors::ColorsService,
+    services::colors::{ColorMix, ColorsService},
 };
 
-use amane::{Align::Center, Color, Rectangle, Service, Widget};
+use amane::{Align::Center, Color, Full, Rectangle, Service, Widget};
 use std::sync::Arc;
 
 fn handler(id: Arc<str>, c: impl FnOnce(&mut ButtonState)) {
@@ -26,10 +26,38 @@ pub struct ButtonColors {
 impl Default for ButtonColors {
     fn default() -> Self {
         let colors = ColorsService::read();
+        Self::layered(
+            colors.c.surface_container.value(),
+            colors.c.on_surface.value(),
+        )
+    }
+}
+
+impl ButtonColors {
+    pub fn layered(base_color: Color, on_base_color: Color) -> Self {
         Self {
-            idle_color: colors.c.surface_container.value(),
-            hovered_color: colors.c.surface_container_high.value(),
-            pressed_color: colors.c.surface_container_highest.value(),
+            pressed_color: base_color.mix(on_base_color, 0.12),
+            hovered_color: base_color.mix(on_base_color, 0.08),
+            idle_color: base_color,
+        }
+    }
+
+    pub fn toggleable(base_color: Color, on_base_color: Color, active: bool) -> Self {
+        let colors = ColorsService::read();
+
+        let (base, layer) = if active {
+            (
+                colors.c.primary_container.value(),
+                colors.c.on_primary_container.value(),
+            )
+        } else {
+            (base_color, on_base_color)
+        };
+
+        ButtonColors {
+            pressed_color: base.mix(layer, 0.12),
+            hovered_color: base.mix(layer, 0.08),
+            idle_color: base,
         }
     }
 }
@@ -93,13 +121,29 @@ pub fn to_button(
     to_button_with_callback::<fn()>(id, rectangle, colors, None)
 }
 
+pub fn circular_button<T: Fn() + 'static>(
+    id: impl Into<Arc<str>>,
+    child: impl Widget + 'static,
+    size: f32,
+    colors: Option<ButtonColors>,
+    on_clicked: Option<T>,
+) -> Rectangle {
+    let r = Rectangle::new()
+        .width(size)
+        .height(size)
+        .align_child(Center, Center)
+        .child(child);
+    to_button_with_callback(id, r, colors, on_clicked).radius(Full)
+}
+
 pub fn button<T: Fn() + 'static>(
+    id: impl Into<Arc<str>>,
     child: impl Widget + 'static,
     height: f32,
-    id: impl Into<Arc<str>>,
+    colors: Option<ButtonColors>,
     on_clicked: Option<T>,
 ) -> Rectangle {
     let r = wrap(child, height).align_child(Center, Center);
 
-    to_button_with_callback(id, r, None, on_clicked)
+    to_button_with_callback(id, r, colors, on_clicked)
 }

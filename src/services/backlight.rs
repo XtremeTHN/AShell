@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use amane::{Bus, Service, arguments, watch_file};
 
+use crate::services::logind::Logind;
+
 const SYS_BACKLIGHT: &str = "/sys/class/backlight/";
 
 pub struct Backlight {
@@ -75,17 +77,7 @@ impl Backlight {
         }
 
         let value = (fraction * backlight.max_brightness) as u32;
-        backlight.bus.call(
-            "org.freedesktop.login1",
-            "/org/freedesktop/login1/session/auto",
-            "org.freedesktop.login1.Session",
-            "SetBrightness",
-            &arguments!(
-                "backlight",
-                backlight.device_name.as_deref().unwrap_or(""),
-                value,
-            ),
-        );
+        Logind::set_brightness(backlight.device_name.as_deref().unwrap_or(""), value);
     }
 }
 

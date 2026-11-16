@@ -8,6 +8,8 @@ pub mod mrow;
 pub mod popup;
 pub mod progress;
 pub mod quicksettings;
+pub mod screenshot;
+pub mod separator;
 pub mod slider;
 pub mod statusicons;
 
