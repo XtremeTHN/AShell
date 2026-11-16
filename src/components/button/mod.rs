@@ -121,6 +121,15 @@ pub fn to_button(
     to_button_with_callback::<fn()>(id, rectangle, colors, None)
 }
 
+pub fn circular_rect(size: f32, child: impl Widget + 'static) -> Rectangle {
+    Rectangle::new()
+        .width(size)
+        .height(size)
+        .align_child(Center, Center)
+        .child(child)
+        .radius(Full)
+}
+
 pub fn circular_button<T: Fn() + 'static>(
     id: impl Into<Arc<str>>,
     child: impl Widget + 'static,
@@ -128,12 +137,8 @@ pub fn circular_button<T: Fn() + 'static>(
     colors: Option<ButtonColors>,
     on_clicked: Option<T>,
 ) -> Rectangle {
-    let r = Rectangle::new()
-        .width(size)
-        .height(size)
-        .align_child(Center, Center)
-        .child(child);
-    to_button_with_callback(id, r, colors, on_clicked).radius(Full)
+    let r = circular_rect(size, child);
+    to_button_with_callback(id, r, colors, on_clicked)
 }
 
 pub fn button<T: Fn() + 'static>(

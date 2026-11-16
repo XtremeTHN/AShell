@@ -1,8 +1,12 @@
 // thanks claude
 
 use amane::{Button, Fill::Mask, Point, Rectangle, Service, Stack, children};
+use libwayshot::{
+    LogicalRegion, Size, WayshotConnection,
+    region::{Position, Region},
+};
 
-use crate::services::colors::ColorsService;
+use crate::{components::screenshot::state::ScreenshotState, services::colors::ColorsService};
 
 const HANDLE: f32 = 12.0; // visual diameter
 const GRAB: f32 = 14.0; // hit radius, a bit bigger than what's drawn
@@ -71,43 +75,55 @@ pub fn on_pressed(_: Button) {
     s.last = None;
 }
 
-pub fn on_drag(point: Point) {
-    let mut s = State::write();
+fn sync_ready() {
+    let ready = rect_of(&State::read()).is_some_and(|(_, _, w, h)| w >= 1.0 && h >= 1.0);
 
-    if s.mode == Mode::Idle {
-        // Handles first: they stick out past the rectangle's edge.
-        if let Some(i) = corner_at(&s, point) {
-            let (x, y, w, h) = rect_of(&s).unwrap();
-            s.initial = Some(corners(x, y, w, h)[3 - i]); // anchor the opposite corner
-            s.mode = Mode::Resize;
-        } else if inside(&s, point) {
-            s.mode = Mode::Move;
-        } else {
-            s.mode = Mode::Create;
-            s.initial = Some(point);
-        }
-        s.last = Some(point);
+    if ScreenshotState::read().ready != ready {
+        ScreenshotState::write().ready = ready;
     }
+}
 
-    match s.mode {
-        Mode::Create | Mode::Resize => s.current = Some(point),
-        Mode::Move => {
-            let last = s.last.unwrap_or(point);
-            let (dx, dy) = (point.x - last.x, point.y - last.y);
-            if let (Some(a), Some(b)) = (s.initial, s.current) {
-                s.initial = Some(Point {
-                    x: a.x + dx,
-                    y: a.y + dy,
-                });
-                s.current = Some(Point {
-                    x: b.x + dx,
-                    y: b.y + dy,
-                });
+pub fn on_drag(point: Point) {
+    {
+        let mut s = State::write();
+
+        if s.mode == Mode::Idle {
+            // Handles first: they stick out past the rectangle's edge.
+            if let Some(i) = corner_at(&s, point) {
+                let (x, y, w, h) = rect_of(&s).unwrap();
+                s.initial = Some(corners(x, y, w, h)[3 - i]); // anchor the opposite corner
+                s.mode = Mode::Resize;
+            } else if inside(&s, point) {
+                s.mode = Mode::Move;
+            } else {
+                s.mode = Mode::Create;
+                s.initial = Some(point);
             }
             s.last = Some(point);
         }
-        Mode::Idle => {}
+
+        match s.mode {
+            Mode::Create | Mode::Resize => s.current = Some(point),
+            Mode::Move => {
+                let last = s.last.unwrap_or(point);
+                let (dx, dy) = (point.x - last.x, point.y - last.y);
+                if let (Some(a), Some(b)) = (s.initial, s.current) {
+                    s.initial = Some(Point {
+                        x: a.x + dx,
+                        y: a.y + dy,
+                    });
+                    s.current = Some(Point {
+                        x: b.x + dx,
+                        y: b.y + dy,
+                    });
+                }
+                s.last = Some(point);
+            }
+            Mode::Idle => {}
+        }
     }
+
+    sync_ready();
 }
 
 fn handle(c: Point, color: amane::Color) -> Rectangle {
@@ -117,6 +133,34 @@ fn handle(c: Point, color: amane::Color) -> Rectangle {
         .radius(HANDLE / 2.0) // fully rounded = circle
         .translate(c.x - HANDLE / 2.0, c.y - HANDLE / 2.0)
         .fill(color)
+}
+
+pub fn available() -> bool {
+    if let Err(e) = WayshotConnection::new() {
+        log::warn!("failed to create wayshot connection: {}", e);
+        false
+    } else {
+        true
+    }
+}
+
+pub fn region() -> LogicalRegion {
+    let Some((x, y, w, h)) = rect_of(&State::read()) else {
+        unreachable!()
+    };
+
+    LogicalRegion {
+        inner: Region {
+            position: Position {
+                x: x as i32,
+                y: y as i32,
+            },
+            size: Size {
+                width: w as u32,
+                height: h as u32,
+            },
+        },
+    }
 }
 
 pub fn selector() -> Stack {
