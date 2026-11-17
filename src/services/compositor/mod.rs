@@ -9,7 +9,7 @@ use amane::Service;
 pub struct Client {
     pub address: String,
     pub app_id: String,
-    pub stable_id: Option<String>,
+    pub stable_id: String,
     pub title: String,
     pub workspace_id: Option<String>,
     pub x: i32,

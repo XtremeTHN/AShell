@@ -103,7 +103,7 @@ pub fn window(client: &Client) -> Rectangle {
         c
     };
 
-    let app_id: Arc<str> = client.stable_id.clone().unwrap().into(); // TODO: handle None
+    let app_id: Arc<str> = client.stable_id.clone().into();
     let hover_app_id = Arc::clone(&app_id);
     let clicked_app_id = Arc::clone(&app_id);
 
