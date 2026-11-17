@@ -80,6 +80,14 @@ fn capture(target: Target) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+pub fn toggle(_: &[String]) -> String {
+    let mut state = ScreenshotState::write();
+    let visible = state.visible;
+    state.set_visible(!visible);
+
+    String::new()
+}
+
 pub fn default_mode() -> &'static str {
     if region::available() {
         "region"

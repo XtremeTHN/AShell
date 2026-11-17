@@ -25,6 +25,7 @@ fn main() {
         .window(components::popup::view)
         .window_per_monitor(components::screenshot::view)
         .ipc("quicksettings", components::quicksettings::toggle)
+        .ipc("screenshot", components::screenshot::toggle)
         .font("Roboto")
         .animation_fps_limit(90)
         .run();

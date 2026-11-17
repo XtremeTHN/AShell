@@ -36,12 +36,11 @@ impl ScreenshotState {
 
 impl Service for ScreenshotState {
     fn new() -> Self {
-        let mut fade = Animation::new(0.0).duration(FADE).easing(Easing::Out);
-        fade.to(1.0);
+        let fade = Animation::new(0.0).duration(FADE).easing(Easing::Out);
 
         Self {
             mode: Mode::default(),
-            visible: true,
+            visible: false,
             ready: false,
             fade,
         }
