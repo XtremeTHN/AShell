@@ -15,7 +15,6 @@ use super::{ActiveToplevel, ActiveWorkspace, Backend, Client, CompositorState};
 
 pub(super) struct Mango;
 
-// one focus change fires both streams, so fold bursts into a single refresh
 const DEBOUNCE: Duration = Duration::from_millis(15);
 
 impl Backend for Mango {
@@ -23,7 +22,6 @@ impl Backend for Mango {
         let path = socket_path()?;
         let (tx, rx) = mpsc::channel::<()>();
 
-        // one connection per watch stream; they only say "something changed"
         for topic in ["all-clients", "all-monitors"] {
             let (path, tx) = (path.clone(), tx.clone());
             thread::spawn(move || {
@@ -32,7 +30,7 @@ impl Backend for Mango {
                 }
             });
         }
-        drop(tx); // so recv() ends once both watchers are gone
+        drop(tx);
 
         publish_state(&path, on_change);
 
@@ -58,7 +56,7 @@ fn watch(path: &Path, topic: &str, tx: &mpsc::Sender<()>) -> io::Result<()> {
     for line in BufReader::new(stream).lines() {
         line?;
         if tx.send(()).is_err() {
-            break; // listener is gone
+            break;
         }
     }
 
@@ -71,7 +69,7 @@ fn request(path: &Path, command: &str) -> io::Result<String> {
     stream.write_all(b"\n")?;
 
     let mut reply = String::new();
-    stream.read_to_string(&mut reply)?; // the compositor closes after a get reply
+    stream.read_to_string(&mut reply)?;
 
     Ok(reply)
 }
@@ -112,11 +110,9 @@ fn parse_state(clients: &str, monitors: &str) -> Result<CompositorState, String>
         })
         .collect();
 
-    // stable order so an unchanged set compares equal and doesn't wake the bar
     parsed.sort_by_key(|(id, _)| *id);
     let clients = parsed.into_iter().map(|(_, client)| client).collect();
 
-    // the focused monitor owns the active toplevel and the active workspace
     let focused = monitors
         .iter()
         .find(|monitor| monitor["active"].as_bool().unwrap_or(false))
@@ -137,11 +133,12 @@ fn parse_client(client: &Value) -> Result<(u64, Client), String> {
     Ok((
         id,
         Client {
-            address: id.to_string(), // same id `mmsg dispatch ... client,<id>` takes
+            address: id.to_string(),
             app_id: string(client, "appid")?,
             title: string(client, "title")?,
-            stable_id: None,
-            // a client can sit on several tags; the first one wins
+            stable_id: client["foreign_toplevel_id"]
+                .as_str()
+                .map(|s| s.to_string()),
             workspace_id: client["tags"]
                 .get(0)
                 .and_then(Value::as_u64)
