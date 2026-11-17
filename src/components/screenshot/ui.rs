@@ -101,12 +101,6 @@ fn toolbar_content() -> Row {
 
     Row::new(children!(
         mode_button(
-            "fullscreen",
-            "fullscreen",
-            state::Mode::Fullscreen,
-            fullscreen::available()
-        ),
-        mode_button(
             "region",
             "highlight_alt",
             state::Mode::Region,
@@ -117,6 +111,12 @@ fn toolbar_content() -> Row {
             "select_window_2",
             state::Mode::Window,
             window::available()
+        ),
+        mode_button(
+            "fullscreen",
+            "fullscreen",
+            state::Mode::Fullscreen,
+            fullscreen::available()
         ),
         separator(Orientation::Vertical, 15.0),
         action_button("screenshot-toolbar-close", "close", true, exit),

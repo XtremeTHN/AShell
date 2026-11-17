@@ -81,5 +81,11 @@ fn capture(target: Target) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn default_mode() -> &'static str {
-    "region"
+    if region::available() {
+        "region"
+    } else if window::available() {
+        "window"
+    } else {
+        "fullscreen"
+    }
 }
