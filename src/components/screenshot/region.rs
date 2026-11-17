@@ -28,6 +28,16 @@ struct State {
     last: Option<Point>,
 }
 
+impl State {
+    fn reset() {
+        let mut s = Self::write();
+        s.initial = None;
+        s.current = None;
+        s.last = None;
+        s.mode = Mode::Idle;
+    }
+}
+
 impl Service for State {
     fn new() -> Self {
         Self::default()
@@ -142,6 +152,10 @@ pub fn available() -> bool {
     } else {
         true
     }
+}
+
+pub fn reset() {
+    State::reset();
 }
 
 pub fn region() -> LogicalRegion {

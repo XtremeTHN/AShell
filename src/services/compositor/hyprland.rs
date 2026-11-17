@@ -117,6 +117,7 @@ fn parse_client(client: &Value) -> Result<Client, String> {
         address: required_string(client, "address", "client")?,
         app_id: required_string(client, "class", "client")?,
         title: required_string(client, "title", "client")?,
+        stable_id: client["stableId"].as_str().map(|i| i.to_string()),
         workspace_id: client["workspace"]["id"].as_i64().map(|i| i.to_string()),
         x: x as i32,
         y: y as i32,

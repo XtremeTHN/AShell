@@ -140,6 +140,7 @@ fn parse_client(client: &Value) -> Result<(u64, Client), String> {
             address: id.to_string(), // same id `mmsg dispatch ... client,<id>` takes
             app_id: string(client, "appid")?,
             title: string(client, "title")?,
+            stable_id: None,
             // a client can sit on several tags; the first one wins
             workspace_id: client["tags"]
                 .get(0)

@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use amane::{Animation, Easing, Service};
 
+use crate::components::screenshot::{region, window};
+
 pub const FADE: Duration = Duration::from_millis(150);
 
 #[derive(Default, Clone, Copy)]
@@ -23,6 +25,9 @@ impl ScreenshotState {
     pub fn set_visible(&mut self, visible: bool) {
         self.visible = visible;
         self.fade.to(if visible { 1.0 } else { 0.0 });
+
+        region::reset();
+        window::reset();
     }
 
     pub fn visible(&self) -> bool {
