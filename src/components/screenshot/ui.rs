@@ -1,30 +1,25 @@
 use crate::{
     components::{
-        Widgets,
         button::{ButtonColors, circular_button, circular_rect, state::ButtonStates},
         icon::glyph_slot,
         mrow::width,
-        screenshot::{
-            default_mode, screenshot,
-            state::{Mode::Region, ScreenshotState},
-        },
+        screenshot::{default_mode, fullscreen, screenshot, state::ScreenshotState, window},
         separator::{Orientation, separator},
     },
     services::colors::ColorsService,
 };
 
-use super::{region, state};
+use super::{Target, region, state};
 
 use amane::{
-    Align, Color, InputArea, Layer, LayerWindow, Monitor, Radius::Full, Rectangle, Row, Service,
-    Size, Stack, Zone, children,
+    Align, Color, Layer, LayerWindow, Monitor, Radius::Full, Rectangle, Row, Service, Size, Stack,
+    Zone, children,
 };
 
-const TOOLBAR_WIDTH: f32 = 500.0;
 const TOOLBAR_HEIGHT: f32 = 50.0;
 const TOOLBAR_MARGIN: f32 = 80.0;
-const ICON_SIZE: f32 = 16.0;
-const BUTTON_SIZE: f32 = 30.0;
+pub const ICON_SIZE: f32 = 16.0;
+pub const BUTTON_SIZE: f32 = 30.0;
 
 fn button_colors(id: &str) -> ButtonColors {
     let colors = ColorsService::read();
@@ -89,10 +84,15 @@ fn exit() {
 fn done() {
     let mode = ScreenshotState::read().mode;
     match mode {
-        Region => {
-            screenshot(region::region());
+        state::Mode::Region => {
+            screenshot(Target::Region(region::region()));
         }
-        _ => todo!(),
+        state::Mode::Window => {
+            screenshot(Target::Toplevel(window::toplevel()));
+        }
+        state::Mode::Fullscreen => {
+            screenshot(Target::All);
+        }
     }
 }
 
@@ -100,14 +100,24 @@ fn toolbar_content() -> Row {
     ButtonStates::new_button_group("screenshot-toolbar", default_mode());
 
     Row::new(children!(
-        mode_button("fullscreen", "fullscreen", state::Mode::Fullscreen, false),
+        mode_button(
+            "fullscreen",
+            "fullscreen",
+            state::Mode::Fullscreen,
+            fullscreen::available()
+        ),
         mode_button(
             "region",
             "highlight_alt",
             state::Mode::Region,
             region::available()
         ),
-        mode_button("window", "select_window_2", state::Mode::Window, false),
+        mode_button(
+            "window",
+            "select_window_2",
+            state::Mode::Window,
+            window::available()
+        ),
         separator(Orientation::Vertical, 15.0),
         action_button("screenshot-toolbar-close", "close", true, exit),
         action_button(
@@ -121,7 +131,7 @@ fn toolbar_content() -> Row {
     .align(Align::Center)
 }
 
-fn toolbar(mon_width: f32, mon_height: f32) -> Rectangle {
+fn toolbar(mon_width: f32) -> Rectangle {
     let c = ColorsService::read();
     let child = toolbar_content();
 
@@ -143,42 +153,36 @@ fn toolbar(mon_width: f32, mon_height: f32) -> Rectangle {
 }
 
 fn content(mon_width: f32, mon_height: f32) -> Stack {
-    let background = Rectangle::new()
+    let mut background = Rectangle::new()
         .width(1920.0)
         .height(1080.0)
         .opacity(0.4)
-        .fill(Color::BLACK)
-        .on_press(region::on_pressed)
-        .on_drag(region::on_drag);
+        .fill(Color::BLACK);
 
     let mode = state::ScreenshotState::read().mode;
-    let mut children: Widgets = vec![Box::new(background)];
-
-    match mode {
+    let child = match mode {
         state::Mode::Region => {
-            children.push(Box::new(region::selector()));
+            background = background
+                .on_press(region::on_pressed)
+                .on_drag(region::on_drag);
+            region::selector()
         }
-        _ => {
-            unreachable!()
-        }
-    }
+        state::Mode::Window => window::selector(),
+        state::Mode::Fullscreen => fullscreen::selector(),
+    };
 
-    let rect = toolbar(mon_width, mon_height);
-    children.push(Box::new(rect));
-
-    Stack::new(children)
+    let rect = toolbar(mon_width);
+    Stack::new(children!(background, child, rect))
 }
 
 pub fn view(mon: &Monitor) -> LayerWindow {
     let (visible, opacity) = {
         let s = ScreenshotState::read();
         (s.visible(), s.opacity())
-    }; // guard dropped here
+    };
 
-    // Stay mapped while fading out, hide only once it's fully transparent.
     let shown = visible || opacity > 0.0;
 
-    // Wrapper so one opacity value fades the whole overlay.
     let faded = Rectangle::new()
         .width(Size::Parent)
         .height(Size::Parent)

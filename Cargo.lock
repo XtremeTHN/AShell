@@ -50,6 +50,7 @@ dependencies = [
  "amane",
  "env_logger",
  "glob",
+ "image",
  "libwayshot",
  "log",
  "serde",

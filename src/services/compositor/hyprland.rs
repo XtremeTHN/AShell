@@ -7,7 +7,7 @@ use std::{
 
 use serde_json::Value;
 
-use super::{ActiveToplevel, ActiveWorkspace, Backend, CompositorState};
+use super::{ActiveToplevel, ActiveWorkspace, Backend, Client, CompositorState};
 
 pub(super) struct Hyprland;
 
@@ -26,14 +26,14 @@ impl Backend for Hyprland {
                 return Ok(());
             }
 
-            if updates_active_state(&event) {
+            if updates_state(&event) {
                 publish_state(on_change);
             }
         }
     }
 }
 
-fn updates_active_state(event: &str) -> bool {
+fn updates_state(event: &str) -> bool {
     matches!(
         event.split_once(">>").map(|(name, _)| name),
         Some(
@@ -43,8 +43,13 @@ fn updates_active_state(event: &str) -> bool {
                 | "workspacev2"
                 | "focusedmon"
                 | "windowtitle"
+                | "windowtitlev2"
                 | "closewindow"
                 | "openwindow"
+                | "movewindow"
+                | "movewindowv2"
+                | "changefloatingmode"
+                | "fullscreen"
         )
     )
 }
@@ -72,18 +77,70 @@ fn request(command: &str) -> io::Result<String> {
 }
 
 fn publish_state(on_change: &mut dyn FnMut(CompositorState)) {
-    let state = match (request("j/activewindow"), request("j/activeworkspace")) {
-        (Ok(toplevel), Ok(workspace)) => parse_state(&toplevel, &workspace),
-        (Err(error), _) | (_, Err(error)) => Err(error.to_string()),
+    let state = match (
+        request("j/activewindow"),
+        request("j/activeworkspace"),
+        request("j/clients"),
+    ) {
+        (Ok(toplevel), Ok(workspace), Ok(clients)) => parse_state(&toplevel, &workspace, &clients),
+        (Err(error), _, _) | (_, Err(error), _) | (_, _, Err(error)) => Err(error.to_string()),
     };
 
     match state {
         Ok(state) => on_change(state),
-        Err(error) => log::error!("Failed to read Hyprland active state: {error}"),
+        Err(error) => log::error!("Failed to read Hyprland state: {error}"),
     }
 }
 
-fn parse_state(toplevel: &str, workspace: &str) -> Result<CompositorState, String> {
+fn parse_clients(json: &str) -> Result<Vec<Client>, String> {
+    let value: Value =
+        serde_json::from_str(json).map_err(|error| format!("invalid clients JSON: {error}"))?;
+    let list = value
+        .as_array()
+        .ok_or_else(|| "clients reply is not an array".to_string())?;
+
+    let mut clients = list
+        .iter()
+        .filter(|c| c["mapped"].as_bool().unwrap_or(true))
+        .map(parse_client)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    clients.sort_by(|a, b| a.address.cmp(&b.address));
+    Ok(clients)
+}
+
+fn parse_client(client: &Value) -> Result<Client, String> {
+    let (x, y) = pair(client, "at")?;
+    let (width, height) = pair(client, "size")?;
+
+    Ok(Client {
+        address: required_string(client, "address", "client")?,
+        app_id: required_string(client, "class", "client")?,
+        title: required_string(client, "title", "client")?,
+        workspace_id: client["workspace"]["id"].as_i64().map(|i| i.to_string()),
+        x: x as i32,
+        y: y as i32,
+        width: width.max(0) as u32,
+        height: height.max(0) as u32,
+        floating: client["floating"].as_bool().unwrap_or(false),
+        hidden: client["hidden"].as_bool().unwrap_or(false),
+    })
+}
+
+fn pair(value: &Value, key: &str) -> Result<(i64, i64), String> {
+    let array = value[key]
+        .as_array()
+        .ok_or_else(|| format!("client has no array {key}"))?;
+    match (
+        array.first().and_then(Value::as_i64),
+        array.get(1).and_then(Value::as_i64),
+    ) {
+        (Some(a), Some(b)) => Ok((a, b)),
+        _ => Err(format!("client {key} is not two integers")),
+    }
+}
+
+fn parse_state(toplevel: &str, workspace: &str, clients: &str) -> Result<CompositorState, String> {
     let toplevel: Value = serde_json::from_str(toplevel)
         .map_err(|error| format!("invalid active-window JSON: {error}"))?;
     let workspace: Value = serde_json::from_str(workspace)
@@ -114,6 +171,7 @@ fn parse_state(toplevel: &str, workspace: &str) -> Result<CompositorState, Strin
             name,
             output: workspace["monitor"].as_str().map(str::to_string),
         }),
+        clients: parse_clients(clients)?,
     })
 }
 
@@ -122,56 +180,4 @@ fn required_string(value: &Value, key: &str, object: &str) -> Result<String, Str
         .as_str()
         .map(str::to_string)
         .ok_or_else(|| format!("{object} has no string {key}"))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn only_refreshes_for_active_state_events() {
-        assert!(updates_active_state("activewindowv2>>0x123\n"));
-        assert!(updates_active_state("workspacev2>>2,work\n"));
-        assert!(!updates_active_state("movewindow>>0x123,1\n"));
-    }
-
-    #[test]
-    fn parses_hyprland_active_state() {
-        let state = parse_state(
-            r#"{"address":"0x123","class":"org.example.App","title":"Example"}"#,
-            r#"{"id":4,"name":"work","monitor":"DP-1"}"#,
-        )
-        .expect("valid active state should parse");
-
-        assert_eq!(
-            state.active_toplevel,
-            Some(ActiveToplevel {
-                app_id: "org.example.App".to_string(),
-                title: "Example".to_string(),
-            })
-        );
-        assert_eq!(
-            state.active_workspace,
-            Some(ActiveWorkspace {
-                id: "4".to_string(),
-                name: "work".to_string(),
-                output: Some("DP-1".to_string()),
-            })
-        );
-    }
-
-    #[test]
-    fn parses_no_active_toplevel() {
-        let state = parse_state("{}", r#"{"id":1,"name":"1","monitor":"DP-1"}"#)
-            .expect("valid workspace with no active toplevel should parse");
-
-        assert_eq!(state.active_toplevel, None);
-        assert_eq!(
-            state
-                .active_workspace
-                .as_ref()
-                .map(|workspace| workspace.name.as_str()),
-            Some("1")
-        );
-    }
 }

@@ -5,6 +5,20 @@ use std::env;
 use amane::Service;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Client {
+    pub address: String,
+    pub app_id: String,
+    pub title: String,
+    pub workspace_id: Option<String>,
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+    pub floating: bool,
+    pub hidden: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ActiveToplevel {
     pub app_id: String,
     pub title: String,
@@ -21,6 +35,7 @@ pub struct ActiveWorkspace {
 struct CompositorState {
     active_toplevel: Option<ActiveToplevel>,
     active_workspace: Option<ActiveWorkspace>,
+    clients: Vec<Client>,
 }
 
 trait Backend {
@@ -39,6 +54,7 @@ fn backend() -> Option<impl Backend> {
 pub struct CompositorService {
     pub active_toplevel: Option<ActiveToplevel>,
     pub active_workspace: Option<ActiveWorkspace>,
+    pub clients: Vec<Client>,
 }
 
 impl Service for CompositorService {
@@ -57,6 +73,7 @@ impl Service for CompositorService {
                 let service = Self::read();
                 service.active_toplevel != state.active_toplevel
                     || service.active_workspace != state.active_workspace
+                    || service.clients != state.clients
             };
             if !changed {
                 return;
@@ -65,6 +82,7 @@ impl Service for CompositorService {
             let mut service = Self::write();
             service.active_toplevel = state.active_toplevel;
             service.active_workspace = state.active_workspace;
+            service.clients = state.clients;
         });
 
         if let Err(error) = result {
