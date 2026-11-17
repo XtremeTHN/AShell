@@ -1,4 +1,5 @@
 mod hyprland;
+mod mango;
 
 use std::env;
 
@@ -42,9 +43,13 @@ trait Backend {
     fn listen(&self, on_change: &mut dyn FnMut(CompositorState)) -> std::io::Result<()>;
 }
 
-fn backend() -> Option<impl Backend> {
+fn backend() -> Option<Box<dyn Backend>> {
     if env::var_os("HYPRLAND_INSTANCE_SIGNATURE").is_some() {
-        return Some(hyprland::Hyprland);
+        return Some(Box::new(hyprland::Hyprland));
+    }
+
+    if env::var_os("MANGO_INSTANCE_SIGNATURE").is_some() {
+        return Some(Box::new(mango::Mango));
     }
 
     None
