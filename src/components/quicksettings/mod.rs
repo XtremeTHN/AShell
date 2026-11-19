@@ -4,16 +4,16 @@ pub mod power;
 pub mod quickbluetooth;
 pub mod quickbutton;
 pub mod quicknetwork;
+pub mod state;
 
 use crate::{
-    components::{button::circular_button, icon::glyph, mrow::height},
+    components::{button::circular_button, icon::glyph},
     services::{backlight::Backlight, colors::ColorsService},
 };
 use amane::{
     Align::{Center, End, Start},
-    Column, InputArea, Justify, LayerWindow, Margin,
-    Radius::Full,
-    Rectangle, Row, Service, Widget, children,
+    Column, InputArea, Justify, LayerWindow, Margin, Rectangle, Row, Service, Text, Widget,
+    children,
 };
 
 pub const TOP_MAX_HEIGHT: f32 = 30.0;
@@ -25,25 +25,13 @@ pub const QUICKSETTINGS_MAX_CONTENT_WIDTH: f32 = QUICKSETTINGS_MAX_PANEL_WIDTH -
 pub const QUICKSETTINGS_BUTTON_WIDTH: f32 = QUICKSETTINGS_MAX_CONTENT_WIDTH / 2.0 - 5.0;
 pub const QUICKSETTINGS_BUTTON_HEIGHT: f32 = 60.0;
 
-struct QuicksettingsIpc {
-    visible: bool,
-}
-
-impl Service for QuicksettingsIpc {
-    fn new() -> Self {
-        Self { visible: false }
-    }
-
-    fn listen() {}
-}
-
 fn settings_btt() -> Rectangle {
     circular_button(
         "quicksettings-settings-btt",
         glyph("settings").size(16.0),
         TOP_MAX_HEIGHT,
         None,
-        Some(|| {}),
+        Some(|| {}), // TODO: implement settings
     )
     .padding(10.0)
 }
@@ -80,30 +68,33 @@ fn middle() -> Column {
     Column::new(column_children).gap(10.0)
 }
 
-// fn bottom() {}
-
 fn content() -> Rectangle {
     let background = ColorsService::read().c.background.value();
 
-    let row = Column::new(children!(top(), middle()))
-        .align(Start)
-        .gap(10.0);
-    let amane::Size::Fixed(height) = height(&row) else {
-        unreachable!()
-    };
+    let frame = state::State::read().navigator.frame();
+    let (child, h) = frame.render(
+        || {
+            Box::new(
+                Column::new(children!(top(), middle()))
+                    .align(Start)
+                    .gap(10.0),
+            )
+        },
+        QUICKSETTINGS_MAX_CONTENT_WIDTH,
+    );
 
     Rectangle::new()
         .width(QUICKSETTINGS_MAX_PANEL_WIDTH)
-        .height(height + 20.0)
-        .child(row)
+        .height(h + 35.0)
         .fill(background)
         .align_child(Center, End)
         .radius(18.0)
         .padding(20.0)
+        .boxed_child(child)
 }
 
 pub fn toggle(_: &[String]) -> String {
-    let mut ipc = QuicksettingsIpc::write();
+    let mut ipc = state::State::write();
     ipc.visible = !ipc.visible;
 
     String::new()
@@ -114,7 +105,8 @@ pub fn view() -> LayerWindow {
     let amane::Size::Fixed(height) = c.height() else {
         unreachable!();
     };
-    let visible = QuicksettingsIpc::read().visible;
+
+    let visible = state::State::read().visible;
 
     let a = InputArea {
         x: 0,
