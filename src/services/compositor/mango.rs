@@ -136,7 +136,7 @@ fn parse_client(client: &Value) -> Result<(u64, Client), String> {
             address: id.to_string(),
             app_id: string(client, "appid")?,
             title: string(client, "title")?,
-            stable_id: string(client, "foreign_top_level_id")?,
+            stable_id: string(client, "foreign_toplevel_id")?,
             workspace_id: client["tags"]
                 .get(0)
                 .and_then(Value::as_u64)
