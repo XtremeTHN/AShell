@@ -1,5 +1,6 @@
-use amane::{App, Service};
+use amane::{App, LayerWindow, Service};
 
+use crate::components::navigation::top::navigator_topbar;
 use crate::services::temps::Temperature;
 use crate::services::{backlight, clock};
 

@@ -1,4 +1,5 @@
 // claude helped but i did this
+pub mod top;
 use amane::{Animation, Rectangle, Size, Stack, Widget, children};
 use std::sync::Arc;
 
