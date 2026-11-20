@@ -12,13 +12,12 @@ use crate::{
 };
 use amane::{
     Align::{Center, End, Start},
-    Column, InputArea, Justify, LayerWindow, Margin, Rectangle, Row, Service, Text, Widget,
-    children,
+    Column, InputArea, Justify, LayerWindow, Margin, Rectangle, Row, Service, Widget, children,
 };
 
 pub const TOP_MAX_HEIGHT: f32 = 30.0;
 
-pub const QUICKSETTINGS_MAX_PANEL_WIDTH: f32 = 340.0;
+pub const QUICKSETTINGS_MAX_PANEL_WIDTH: f32 = 360.0;
 pub const QUICKSETTINGS_MAX_PANEL_HEIGHT: f32 = 1080.0;
 pub const QUICKSETTINGS_MAX_CONTENT_WIDTH: f32 = QUICKSETTINGS_MAX_PANEL_WIDTH - 30.0;
 

@@ -8,8 +8,11 @@ use crate::{
 };
 use amane::{Align, Color, Column, Fill, Rectangle, Row, Service, Size, Weight, children};
 
+pub type QuickButtonCallback = Box<dyn Fn() + 'static>;
+
 const PAD: f32 = 10.0;
 const GAP: f32 = 8.0;
+const ARROW_W: f32 = 30.0;
 
 const HOVER: f32 = 0.08;
 const PRESSED: f32 = 0.12;
@@ -45,17 +48,18 @@ impl State {
     }
 }
 
-pub struct QuickButton<T: Fn() + 'static> {
+pub struct QuickButton {
     id: &'static str,
     title: String,
     subtitle: Option<String>,
     icon_name: Option<String>,
     state: State,
     size: (f32, f32),
-    callback: Option<T>,
+    callback: Option<QuickButtonCallback>,
+    on_more: Option<QuickButtonCallback>,
 }
 
-impl<T: Fn() + 'static> QuickButton<T> {
+impl QuickButton {
     pub fn new(id: &'static str, title: impl Into<String>) -> Self {
         Self {
             id,
@@ -65,6 +69,7 @@ impl<T: Fn() + 'static> QuickButton<T> {
             state: State::default(),
             size: (0.0, 0.0),
             callback: None,
+            on_more: None,
         }
     }
 
@@ -88,21 +93,33 @@ impl<T: Fn() + 'static> QuickButton<T> {
         self
     }
 
-    pub fn on_click(mut self, callback: T) -> Self {
-        self.callback = Some(callback);
+    pub fn on_click(mut self, callback: impl Fn() + 'static) -> Self {
+        self.callback = Some(Box::new(callback));
+        self
+    }
+
+    pub fn on_more(mut self, callback: impl Fn() + 'static) -> Self {
+        self.on_more = Some(Box::new(callback));
         self
     }
 
     pub fn build(self) -> Rectangle {
         let state = self.state;
         let gcolors = ColorsService::read();
-        let colors = state.button_colors();
+
+        let has_more = self.on_more.is_some();
 
         let box_size = self.size.1 - PAD * 2.0;
-        let inner_width = self.size.0 - PAD * 2.0;
+        // without the arrow, the main part gets the whole width
+        let main_w = if has_more {
+            self.size.0 - ARROW_W
+        } else {
+            self.size.0
+        };
+        let inner_width = main_w - PAD * 2.0;
 
         let icon_fill = match state {
-            State::On => Fill::from(ColorsService::read().c.primary_container.value()),
+            State::On => Fill::from(gcolors.c.primary_container.value()),
             _ => Fill::Color(Color::TRANSPARENT),
         };
 
@@ -139,13 +156,41 @@ impl<T: Fn() + 'static> QuickButton<T> {
             .align(Align::Center)
             .gap(GAP);
 
-        let rect = Rectangle::new()
-            .width(self.size.0)
+        let main_rect = Rectangle::new()
+            .width(main_w)
             .height(self.size.1)
             .child(row)
-            .align_child(Align::Center, Align::Center)
-            .radius(16.0);
+            .align_child(Align::Center, Align::Center);
 
-        to_stateful_button(self.id, colors, self.callback, rect)
+        // all corners rounded when alone, only the left ones when the arrow follows
+        let main_rect = if has_more {
+            main_rect.radius_top_left(16.0).radius_bottom_left(16.0)
+        } else {
+            main_rect.radius(16.0)
+        };
+
+        let main_btt = to_stateful_button(self.id, state.button_colors(), self.callback, main_rect);
+
+        let Some(on_more) = self.on_more else {
+            return main_btt;
+        };
+
+        let more_btt = to_stateful_button(
+            format!("{}-more", self.id),
+            state.button_colors(),
+            Some(on_more),
+            Rectangle::new()
+                .width(ARROW_W)
+                .height(self.size.1)
+                .align_child(Align::Center, Align::Center)
+                .child(glyph("keyboard_arrow_right"))
+                .radius_top_right(16.0)
+                .radius_bottom_right(16.0),
+        );
+
+        Rectangle::new()
+            .width(self.size.0)
+            .height(self.size.1)
+            .child(Row::new(children!(main_btt, more_btt)))
     }
 }
